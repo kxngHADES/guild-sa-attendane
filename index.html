@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Attendance Register</title>
+</head>
+<body>
+    <!--View dashboard container-->
+  <section id="view-dashboard" aria-labelledby="dashboard-heading">
+    <h1 id="dashboard-heading">Event Dashboard</h1>
+    <div class="stats-grid" role="region" aria-label="Statistics">
+      <div class="stat-card" aria-labelledby="stat-registered-label">
+        <span id="stat-registered-label" class="stat-label">Total Registered</span>
+        <output id="stat-registered" class="stat-value">0</output>
+      </div>
+      <div class="stat-card" aria-labelledby="stat-present-label">
+        <span id="stat-present-label" class="stat-label">Total Present</span>
+        <output id="stat-present" class="stat-value">0</output>
+      </div>
+      <div class="stat-card" aria-labelledby="stat-absent-label">
+        <span id="stat-absent-label" class="stat-label">Total Absent</span>
+        <output id="stat-absent" class="stat-value">0</output>
+      </div>
+      <div class="stat-card" aria-labelledby="stat-percent-label">
+        <span id="stat-percent-label" class="stat-label">Attendance %</span>
+        <output id="stat-percent" class="stat-value">0%</output>
+      </div>
+    </div>
+    <div class="quick-actions">
+      <label for="quick-checkin">Quick Check-in</label>
+      <input type="text" id="quick-checkin" placeholder="Student number" autocomplete="off">
+    </div>
+  </section>
+
+  <!--View Register container-->
+  <section id="view-registration" style="display:none" aria-labelledby="reg-heading">
+    <h2 id="reg-heading">Student Registration</h2>
+    <form id="registration-form" novalidate>
+      <div class="form-group">
+        <label for="student-number">Student Number <span aria-hidden="true">*</span></label>
+        <input type="text" id="student-number" name="studentNumber" required autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="full-name">Full Name <span aria-hidden="true">*</span></label>
+        <input type="text" id="full-name" name="fullName" required autocomplete="name">
+      </div>
+      <button type="submit" id="btn-add-student">Add Student</button>
+    </form>
+    <div id="registration-notice" aria-live="polite" aria-atomic="true"></div>
+  </section>
+
+  <!--View attendance container-->
+  <section id="view-attendance" style="display:none" aria-labelledby="att-heading">
+    <h2 id="att-heading">Attendance List</h2>
+    <div class="controls">
+      <label for="attendance-search">Search</label>
+      <input type="search" id="attendance-search" placeholder="Search by name or number" autocomplete="off">
+      <button type="button" id="btn-sort-toggle" aria-pressed="false">Sort: A–Z</button>
+    </div>
+    <div id="attendee-list" role="list" aria-label="Attendee list"></div>
+  </section>
+
+  <!--View settings attendance-->
+  <section id="view-settings" style="display:none" aria-labelledby="settings-heading">
+    <h2 id="settings-heading">System Settings</h2>
+    
+    <fieldset>
+      <legend>Theme</legend>
+      <label class="toggle-switch">
+        <input type="checkbox" id="theme-toggle" role="switch" aria-label="Dark mode">
+        <span class="toggle-slider" aria-hidden="true"></span>
+        <span class="toggle-label">Dark Mode</span>
+      </label>
+    </fieldset>
+    
+    <fieldset>
+      <legend>Data Operations</legend>
+      <button type="button" id="btn-export-csv">Export CSV</button>
+      <button type="button" id="btn-bulk-import">Bulk Import</button>
+      <button type="button" id="btn-reset-all" class="btn-danger">Reset All Records</button>
+    </fieldset>
+  </section>
+
+  <nav id="nav-bottom" role="navigation" aria-label="Main navigation">
+    <button type="button" data-view="dashboard" aria-label="Dashboard" aria-current="page">Dashboard</button>
+    <button type="button" data-view="registration" aria-label="Register">Register</button>
+    <button type="button" data-view="attendance" aria-label="Attendance">Attendance</button>
+    <button type="button" data-view="settings" aria-label="Settings">Settings</button>
+  </nav>
+</body>
+</html>
