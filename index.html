@@ -958,15 +958,332 @@
         },
       };
 
-      // Initialize data on DOM ready
-      function init() {
-        loadData();
+      // ============================================================
+      // UI UTILITIES
+      // ============================================================
+
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, c => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        }[c]));
       }
 
-      document.addEventListener('DOMContentLoaded', init);
+      function getInitials(name) {
+        return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+      }
+
+      function formatTime(iso) {
+        if (!iso) return '—';
+        return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
+      function showNotice(el, message, type) {
+        el.textContent = message;
+        el.className = type; // 'success' or 'error'
+        setTimeout(() => { el.textContent = ''; el.className = ''; }, 4000);
+      }
 
       // ============================================================
-      // VIEW SWITCHING LOGIC (existing)
+      // RENDER FUNCTIONS
+      // ============================================================
+
+      function renderDashboardStats() {
+        const stats = dataAPI.getStats();
+        document.getElementById('stat-registered').textContent = stats.total;
+        document.getElementById('stat-present').textContent = stats.present;
+        document.getElementById('stat-absent').textContent = stats.absent;
+        document.getElementById('stat-percent').textContent = stats.percent + '%';
+      }
+
+      // Attendance list state
+      let sortAscending = true;
+
+      function renderAttendeeList() {
+        const list = document.getElementById('attendee-list');
+        const searchTerm = document.getElementById('attendance-search').value.toLowerCase().trim();
+        let studentsToRender = dataAPI.getAll();
+
+        // Filter by search
+        if (searchTerm) {
+          studentsToRender = studentsToRender.filter(s =>
+            s.fullName.toLowerCase().includes(searchTerm) ||
+            s.studentNumber.toLowerCase().includes(searchTerm)
+          );
+        }
+
+        // Sort
+        studentsToRender.sort((a, b) => {
+          const nameA = a.fullName.toLowerCase();
+          const nameB = b.fullName.toLowerCase();
+          return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        });
+
+        if (studentsToRender.length === 0) {
+          list.innerHTML = `
+            <div class="attendee-item" style="justify-content: center; color: var(--text-secondary); padding: var(--space-lg);">
+              No students found${searchTerm ? ' matching "' + escapeHtml(searchTerm) + '"' : ''}
+            </div>
+          `;
+          return;
+        }
+
+        list.innerHTML = studentsToRender.map(student => `
+          <div class="attendee-item" data-id="${escapeHtml(student.id)}">
+            <div class="attendee-avatar">${escapeHtml(getInitials(student.fullName))}</div>
+            <div class="attendee-info">
+              <div class="attendee-name">${escapeHtml(student.fullName)}</div>
+              <div class="attendee-number">${escapeHtml(student.studentNumber)}</div>
+            </div>
+            <span class="attendee-status ${student.isPresent ? 'present' : 'absent'}">
+              ${student.isPresent ? 'Present' : 'Absent'}
+            </span>
+            <span class="attendee-time">${formatTime(student.checkInTime)}</span>
+            <div class="attendee-actions">
+              <button class="btn-toggle" data-id="${escapeHtml(student.id)}" aria-label="${student.isPresent ? 'Check out' : 'Check in'}">
+                ${student.isPresent ? 'Check Out' : 'Check In'}
+              </button>
+              <button class="btn-edit" data-id="${escapeHtml(student.id)}">Edit</button>
+              <button class="btn-delete danger" data-id="${escapeHtml(student.id)}">Delete</button>
+            </div>
+          </div>
+        `).join('');
+
+        // Attach toggle handlers
+        list.querySelectorAll('.btn-toggle').forEach(btn => {
+          btn.addEventListener('click', () => {
+            dataAPI.togglePresence(btn.dataset.id);
+            renderAttendeeList();
+            renderDashboardStats();
+          });
+        });
+
+        // Attach edit handlers
+        list.querySelectorAll('.btn-edit').forEach(btn => {
+          btn.addEventListener('click', () => openEditModal(btn.dataset.id));
+        });
+
+        // Attach delete handlers
+        list.querySelectorAll('.btn-delete').forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (confirm('Delete this student? This cannot be undone.')) {
+              dataAPI.remove(btn.dataset.id);
+              renderAttendeeList();
+              renderDashboardStats();
+            }
+          });
+        });
+      }
+
+      // Edit modal state
+      let editingStudentId = null;
+
+      function openEditModal(studentId) {
+        const student = dataAPI.getById(studentId);
+        if (!student) return;
+
+        editingStudentId = studentId;
+        document.getElementById('student-number').value = student.studentNumber;
+        document.getElementById('full-name').value = student.fullName;
+        document.getElementById('reg-heading').textContent = 'Edit Student';
+        document.getElementById('btn-add-student').textContent = 'Save Changes';
+        document.getElementById('registration-form').dataset.editMode = 'true';
+        dataAPI.showView('registration');
+      }
+
+      function closeEditModal() {
+        editingStudentId = null;
+        document.getElementById('registration-form').reset();
+        document.getElementById('registration-notice').textContent = '';
+        document.getElementById('registration-notice').className = '';
+        document.getElementById('reg-heading').textContent = 'Student Registration';
+        document.getElementById('btn-add-student').textContent = 'Add Student';
+        delete document.getElementById('registration-form').dataset.editMode;
+      }
+
+      // ============================================================
+      // EVENT HANDLERS
+      // ============================================================
+
+      // Registration form
+      const regForm = document.getElementById('registration-form');
+      const regNotice = document.getElementById('registration-notice');
+
+      regForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const studentNumber = document.getElementById('student-number').value.trim();
+        const fullName = document.getElementById('full-name').value.trim();
+
+        // Validation
+        if (!studentNumber || !fullName) {
+          showNotice(regNotice, 'Both fields are required', 'error');
+          return;
+        }
+
+        const isEditMode = regForm.dataset.editMode === 'true';
+
+        if (isEditMode && editingStudentId) {
+          // Edit existing - check duplicate only if number changed
+          const existing = dataAPI.getByNumber(studentNumber);
+          if (existing && existing.id !== editingStudentId) {
+            showNotice(regNotice, 'Student number already exists', 'error');
+            return;
+          }
+          const result = dataAPI.update(editingStudentId, { studentNumber, fullName });
+          if (result.ok) {
+            showNotice(regNotice, 'Student updated successfully', 'success');
+            closeEditModal();
+            renderAttendeeList();
+            renderDashboardStats();
+          } else {
+            showNotice(regNotice, 'Failed to update student', 'error');
+          }
+        } else {
+          // Add new
+          const result = dataAPI.add(studentNumber, fullName);
+          if (result.ok) {
+            regForm.reset();
+            showNotice(regNotice, 'Student registered successfully', 'success');
+            renderAttendeeList();
+            renderDashboardStats();
+          } else {
+            showNotice(regNotice, result.error, 'error');
+          }
+        }
+      });
+
+      // Quick check-in
+      const quickCheckin = document.getElementById('quick-checkin');
+      quickCheckin.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const num = quickCheckin.value.trim();
+          if (!num) return;
+
+          const student = dataAPI.getByNumber(num);
+          if (student) {
+            dataAPI.togglePresence(student.id);
+            quickCheckin.value = '';
+            renderDashboardStats();
+            renderAttendeeList();
+            showNotice(document.getElementById('registration-notice'), `${student.fullName} checked in`, 'success');
+          } else {
+            showNotice(document.getElementById('registration-notice'), 'Student not found', 'error');
+          }
+        }
+      });
+
+      // Attendance search
+      document.getElementById('attendance-search').addEventListener('input', () => {
+        renderAttendeeList();
+      });
+
+      // Sort toggle
+      document.getElementById('btn-sort-toggle').addEventListener('click', (e) => {
+        sortAscending = !sortAscending;
+        e.target.textContent = sortAscending ? 'Sort: A–Z' : 'Sort: Z–A';
+        e.target.setAttribute('aria-pressed', sortAscending);
+        renderAttendeeList();
+      });
+
+      // Settings: Theme toggle
+      const themeToggle = document.getElementById('theme-toggle');
+      themeToggle.addEventListener('change', () => {
+        const darkMode = themeToggle.checked;
+        document.documentElement.classList.toggle('dark-theme', darkMode);
+        dataAPI.setTheme(darkMode);
+      });
+
+      // Initialize theme toggle state
+      themeToggle.checked = dataAPI.getTheme();
+
+      // Settings: Export CSV
+      document.getElementById('btn-export-csv').addEventListener('click', () => {
+        const students = dataAPI.getAll();
+        if (students.length === 0) {
+          alert('No data to export');
+          return;
+        }
+        const headers = ['Student Number', 'Full Name', 'Status', 'Check-in Time', 'Last Modified'];
+        const rows = students.map(s => [
+          s.studentNumber,
+          s.fullName,
+          s.isPresent ? 'Present' : 'Absent',
+          s.checkInTime || '',
+          s.lastModified
+        ]);
+        const csv = [headers.join(','), ...rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `attendance-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // Settings: Bulk Import modal
+      const bulkImportModal = document.createElement('div');
+      bulkImportModal.className = 'modal-overlay';
+      bulkImportModal.innerHTML = `
+        <div class="modal">
+          <h3>Bulk Import Students</h3>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-md);">
+            Paste CSV data (Student Number, Full Name per line). Header row optional.
+          </p>
+          <textarea id="bulk-import-textarea" placeholder="STU-001, John Doe&#10;STU-002, Jane Smith"></textarea>
+          <div class="modal-actions">
+            <button class="btn-secondary" id="btn-bulk-cancel">Cancel</button>
+            <button class="btn-primary" id="btn-bulk-confirm">Import</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(bulkImportModal);
+
+      document.getElementById('btn-bulk-import').addEventListener('click', () => {
+        document.getElementById('bulk-import-textarea').value = '';
+        bulkImportModal.classList.add('open');
+      });
+
+      document.getElementById('btn-bulk-cancel').addEventListener('click', () => {
+        bulkImportModal.classList.remove('open');
+      });
+
+      document.getElementById('btn-bulk-confirm').addEventListener('click', () => {
+        const text = document.getElementById('bulk-import-textarea').value.trim();
+        if (!text) return;
+
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+        let imported = 0, errors = 0;
+
+        lines.forEach(line => {
+          const [num, name] = line.split(',').map(s => s.trim());
+          if (num && name) {
+            const result = dataAPI.add(num, name);
+            if (result.ok) imported++;
+            else errors++;
+          }
+        });
+
+        bulkImportModal.classList.remove('open');
+        renderAttendeeList();
+        renderDashboardStats();
+        alert(`Imported: ${imported}, Errors: ${errors}`);
+      });
+
+      // Settings: Reset All
+      document.getElementById('btn-reset-all').addEventListener('click', () => {
+        if (confirm('Delete ALL student records? This cannot be undone.')) {
+          dataAPI.clearAll();
+          renderAttendeeList();
+          renderDashboardStats();
+        }
+      });
+
+      // ============================================================
+      // VIEW SWITCHING LOGIC
       // ============================================================
 
       // DOM references
@@ -1000,6 +1317,18 @@
           btn.classList.toggle('active', isActive);
           btn.setAttribute('aria-current', isActive ? 'page' : 'false');
         });
+
+        // View-specific initialization
+        if (viewName === 'dashboard') {
+          renderDashboardStats();
+        } else if (viewName === 'attendance') {
+          renderAttendeeList();
+        } else if (viewName === 'registration') {
+          // Reset form if not in edit mode
+          if (!regForm.dataset.editMode) {
+            closeEditModal();
+          }
+        }
       }
 
       // Event delegation on bottom nav
@@ -1023,11 +1352,23 @@
       });
 
       // ============================================================
+      // INITIALIZATION
+      // ============================================================
+
+      function init() {
+        loadData();
+        renderDashboardStats();
+        renderAttendeeList();
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+
+      // ============================================================
       // PUBLIC API (exposed for UI integration)
       // ============================================================
 
       window.App = window.App || {};
-      Object.assign(window.App, dataAPI, { showView });
+      Object.assign(window.App, dataAPI, { showView, renderDashboardStats, renderAttendeeList });
 
       // Dev helper: test persistence (run in console: App.__devTestPersist())
       window.App.__devTestPersist = () => {
