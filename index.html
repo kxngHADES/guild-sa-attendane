@@ -807,6 +807,168 @@
     (function () {
       'use strict';
 
+      // ============================================================
+      // DATA PERSISTENCE LAYER
+      // ============================================================
+
+      const STORAGE_KEYS = {
+        STUDENTS: 'guild_sa_attendance_list',
+        SETTINGS: 'guild_sa_app_settings',
+      };
+
+      // In-memory data store
+      let students = [];
+
+      // Schema normalization (defensive: handles legacy/malformed data)
+      function normalizeStudent(student) {
+        return {
+          id: student.id || `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+          studentNumber: student.studentNumber || '',
+          fullName: student.fullName || '',
+          isPresent: Boolean(student.isPresent),
+          checkInTime: student.checkInTime || null,
+          lastModified: student.lastModified || new Date().toISOString(),
+        };
+      }
+
+      // Load from localStorage
+      function loadData() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEYS.STUDENTS);
+          students = raw ? JSON.parse(raw).map(normalizeStudent) : [];
+        } catch (e) {
+          console.error('Failed to load student data:', e);
+          students = [];
+        }
+        // Load theme preference
+        try {
+          const settingsRaw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+          if (settingsRaw) {
+            const settings = JSON.parse(settingsRaw);
+            if (settings.darkMode) {
+              document.documentElement.classList.add('dark-theme');
+            }
+          }
+        } catch (e) {
+          console.error('Failed to load settings:', e);
+        }
+      }
+
+      // Save to localStorage
+      function saveData() {
+        try {
+          localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
+        } catch (e) {
+          console.error('Failed to save student data:', e);
+        }
+      }
+
+      // Save settings (theme, etc.)
+      function saveSettings(settings) {
+        try {
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+        } catch (e) {
+          console.error('Failed to save settings:', e);
+        }
+      }
+
+      // Data API exposed to UI layer
+      const dataAPI = {
+        // Read
+        getAll: () => students,
+        getById: (id) => students.find(s => s.id === id),
+        getByNumber: (num) => students.find(s => s.studentNumber === num),
+
+        // Create
+        add: (studentNumber, fullName) => {
+          if (students.some(s => s.studentNumber === studentNumber)) {
+            return { ok: false, error: 'Student number already exists' };
+          }
+          const now = new Date().toISOString();
+          const student = {
+            id: `${now}_${Math.random().toString(36).slice(2, 9)}`,
+            studentNumber,
+            fullName,
+            isPresent: false,
+            checkInTime: null,
+            lastModified: now,
+          };
+          students.push(student);
+          saveData();
+          return { ok: true, student };
+        },
+
+        // Toggle presence (check-in/out)
+        togglePresence: (id) => {
+          const student = students.find(s => s.id === id);
+          if (!student) return { ok: false };
+          student.isPresent = !student.isPresent;
+          student.checkInTime = student.isPresent ? new Date().toISOString() : null;
+          student.lastModified = new Date().toISOString();
+          saveData();
+          return { ok: true, student };
+        },
+
+        // Update (edit)
+        update: (id, patches) => {
+          const idx = students.findIndex(s => s.id === id);
+          if (idx === -1) return { ok: false };
+          students[idx] = { ...students[idx], ...patches, lastModified: new Date().toISOString() };
+          saveData();
+          return { ok: true, student: students[idx] };
+        },
+
+        // Delete
+        remove: (id) => {
+          const idx = students.findIndex(s => s.id === id);
+          if (idx === -1) return { ok: false };
+          students.splice(idx, 1);
+          saveData();
+          return { ok: true };
+        },
+
+        // Clear all
+        clearAll: () => {
+          students.length = 0;
+          saveData();
+          return { ok: true };
+        },
+
+        // Stats for dashboard
+        getStats: () => ({
+          total: students.length,
+          present: students.filter(s => s.isPresent).length,
+          absent: students.filter(s => !s.isPresent).length,
+          percent: students.length
+            ? Math.round((students.filter(s => s.isPresent).length / students.length) * 100)
+            : 0,
+        }),
+
+        // Theme persistence
+        setTheme: (darkMode) => {
+          saveSettings({ darkMode });
+        },
+        getTheme: () => {
+          try {
+            const settingsRaw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+            return settingsRaw ? JSON.parse(settingsRaw).darkMode : false;
+          } catch {
+            return false;
+          }
+        },
+      };
+
+      // Initialize data on DOM ready
+      function init() {
+        loadData();
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+
+      // ============================================================
+      // VIEW SWITCHING LOGIC (existing)
+      // ============================================================
+
       // DOM references
       const views = {
         dashboard: document.getElementById('view-dashboard'),
@@ -860,9 +1022,22 @@
         }
       });
 
-      // Expose for future data logic integration
+      // ============================================================
+      // PUBLIC API (exposed for UI integration)
+      // ============================================================
+
       window.App = window.App || {};
-      window.App.showView = showView;
+      Object.assign(window.App, dataAPI, { showView });
+
+      // Dev helper: test persistence (run in console: App.__devTestPersist())
+      window.App.__devTestPersist = () => {
+        const testId = `test_${Date.now()}`;
+        const res = window.App.add(testId, 'Test Student');
+        console.log('Add result:', res);
+        console.log('Stats after add:', window.App.getStats());
+        location.reload();
+      };
+
     })();
   </script>
 </body>
