@@ -1,9 +1,3 @@
-Since we are finalizing the planning phase of our Waterfall process, this document acts as the technical manual for your JavaScript implementation. It ensures that you satisfy the core requirements of state management, duplicate prevention, and data persistence .
-
-Copy the following content into your `docs/data-logic.md` file:
-
-***
-
 # Data Schema & Logic Flow: Student Attendance Register Tool
 
 ## 1. Data Schema (The "Brain")
