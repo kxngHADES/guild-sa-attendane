@@ -802,5 +802,68 @@
     <button type="button" class="nav-item" data-view="attendance" aria-label="Attendance">Attendance</button>
     <button type="button" class="nav-item" data-view="settings" aria-label="Settings">Settings</button>
   </nav>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // DOM references
+      const views = {
+        dashboard: document.getElementById('view-dashboard'),
+        registration: document.getElementById('view-registration'),
+        attendance: document.getElementById('view-attendance'),
+        settings: document.getElementById('view-settings'),
+      };
+
+      const navButtons = document.querySelectorAll('.nav-item[data-view]');
+
+      // View switching logic
+      function showView(viewName) {
+        // Hide all views
+        Object.values(views).forEach(view => {
+          view.classList.remove('view-visible');
+          view.classList.add('view-hidden');
+        });
+
+        // Show target view
+        const targetView = views[viewName];
+        if (targetView) {
+          targetView.classList.remove('view-hidden');
+          targetView.classList.add('view-visible');
+        }
+
+        // Update navigation active state
+        navButtons.forEach(btn => {
+          const isActive = btn.dataset.view === viewName;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-current', isActive ? 'page' : 'false');
+        });
+      }
+
+      // Event delegation on bottom nav
+      const bottomNav = document.querySelector('.bottom-nav');
+      bottomNav.addEventListener('click', (event) => {
+        const btn = event.target.closest('.nav-item[data-view]');
+        if (btn) {
+          showView(btn.dataset.view);
+        }
+      });
+
+      // Keyboard support: Enter/Space activates focused nav item
+      bottomNav.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          const btn = event.target.closest('.nav-item[data-view]');
+          if (btn) {
+            event.preventDefault();
+            showView(btn.dataset.view);
+          }
+        }
+      });
+
+      // Expose for future data logic integration
+      window.App = window.App || {};
+      window.App.showView = showView;
+    })();
+  </script>
 </body>
 </html>
