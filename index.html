@@ -50,26 +50,6 @@
       --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
     }
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg-canvas: #0f1011;
-        --bg-surface: #1a1b1d;
-        --bg-elevated: #222325;
-        --border-default: #2a2b2d;
-        --text-primary: #f8f9f9;
-        --text-secondary: #a1a1a5;
-        --color-surface: #1e1e21;
-        --color-surface-dim: #121214;
-        --color-on-surface: #f0f1f1;
-        --color-success: #22a06b;
-        --color-success-bg: rgba(34, 160, 107, 0.15);
-        --color-danger: #e5484d;
-        --color-danger-bg: rgba(229, 72, 77, 0.15);
-        --color-warning: #dca022;
-        --color-warning-bg: rgba(220, 160, 34, 0.15);
-      }
-    }
-
     html.dark-theme,
     body.dark-theme {
       --bg-canvas: #0f1011;
@@ -637,6 +617,134 @@
       color: var(--text-secondary);
     }
 
+    /* Quick Check-in Form */
+    .quick-checkin-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+    .quick-checkin-form .input-row {
+      display: flex;
+      gap: var(--space-sm);
+    }
+    .quick-checkin-form .input-row input {
+      flex: 1;
+    }
+    .quick-checkin-form .btn-primary {
+      width: 100%;
+      height: var(--input-height);
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+      border-radius: var(--radius-md);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      transition: var(--transition-fast);
+    }
+    .quick-checkin-form .btn-primary:hover {
+      background: var(--color-primary-container);
+    }
+    .quick-checkin-form .btn-primary .icon {
+      width: 18px;
+      height: 18px;
+    }
+    #quick-checkin-notice {
+      margin-top: var(--space-sm);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      min-height: 20px;
+    }
+    #quick-checkin-notice.success {
+      background: var(--color-success-bg);
+      border: 1px solid var(--color-success);
+      color: var(--color-success);
+    }
+    #quick-checkin-notice.error {
+      background: var(--color-danger-bg);
+      border: 1px solid var(--color-danger);
+      color: var(--color-danger);
+    }
+
+    /* Recent Activity Section */
+    .recent-activity {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-xl);
+      padding: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-md);
+    }
+    .section-header h2 {
+      margin-bottom: 0;
+    }
+    .btn-link {
+      background: none;
+      border: none;
+      color: var(--color-accent);
+      font-size: 13px;
+      font-weight: 500;
+      padding: var(--space-xs) 0;
+    }
+    .btn-link:hover {
+      text-decoration: underline;
+    }
+    .activity-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-sm);
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--border-default);
+    }
+    .activity-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .activity-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .activity-icon.checkin { color: var(--color-success); }
+    .activity-icon.checkout { color: var(--color-danger); }
+    .activity-icon.register { color: var(--color-accent); }
+    .activity-icon.remove { color: var(--color-warning); }
+    .activity-icon.edit { color: #8b5cf6; }
+    .activity-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .activity-message {
+      margin: 0 0 var(--space-xs) 0;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .activity-message strong {
+      font-weight: 600;
+    }
+    .activity-time {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Lucide SVG Sprite */
+    .lucide-sprite { display: none; }
+
     /* Bulk Import Modal (hidden by default) */
     .modal-overlay {
       position: fixed;
@@ -712,6 +820,123 @@
       border: 1px solid var(--border-default);
       color: var(--text-primary);
     }
+
+    /* Bulk Import Modal Enhancements */
+    .bulk-import-options {
+      margin-top: var(--space-sm);
+    }
+    .import-method {
+      display: flex;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-md);
+      border-bottom: 2px solid var(--border-default);
+      padding-bottom: var(--space-xs);
+    }
+    .import-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: var(--space-sm) var(--space-md);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      margin-bottom: -2px;
+    }
+    .import-tab:hover {
+      color: var(--text-primary);
+    }
+    .import-tab.active {
+      color: var(--color-accent);
+      border-bottom-color: var(--color-accent);
+    }
+    .import-tab .icon {
+      width: 16px;
+      height: 16px;
+    }
+    .import-content {
+      position: relative;
+    }
+    .import-pane {
+      display: none;
+    }
+    .import-pane.active {
+      display: block;
+    }
+    .file-drop-zone {
+      border: 2px dashed var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      background: var(--bg-surface);
+    }
+    .file-drop-zone:hover,
+    .file-drop-zone.drag-over {
+      border-color: var(--color-accent);
+      background: var(--color-accent);
+      color: var(--color-on-primary);
+    }
+    .file-drop-zone.drag-over {
+      transform: scale(1.01);
+    }
+    .file-drop-zone .icon-large {
+      width: 48px;
+      height: 48px;
+      margin-bottom: var(--space-sm);
+      opacity: 0.6;
+    }
+    .file-drop-zone p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .file-drop-zone:hover p,
+    .file-drop-zone.drag-over p {
+      color: inherit;
+    }
+    .file-hint {
+      font-size: 12px !important;
+      margin-top: var(--space-xs) !important;
+      opacity: 0.7;
+    }
+    .file-preview {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding: var(--space-md);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+    }
+    .file-preview p {
+      margin: 0;
+      font-size: 13px;
+    }
+    .file-preview .btn-link {
+      padding: var(--space-xs) var(--space-sm);
+    }
+    #bulk-import-notice {
+      font-size: 13px;
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--radius-md);
+    }
+    #bulk-import-notice.success {
+      background: var(--color-success-bg);
+      border: 1px solid var(--color-success);
+      color: var(--color-success);
+    }
+    #bulk-import-notice.error {
+      background: var(--color-danger-bg);
+      border: 1px solid var(--color-danger);
+      color: var(--color-danger);
+    }
   </style>
 </head>
 <body>
@@ -722,6 +947,20 @@
     <!--View dashboard container-->
     <section id="view-dashboard" class="view-visible" aria-labelledby="dashboard-heading">
     <h1 id="dashboard-heading">Event Dashboard</h1>
+    <div class="quick-actions">
+      <label>Quick Check-in</label>
+      <div class="quick-checkin-form">
+        <div class="input-row">
+          <input type="text" id="quick-student-number" placeholder="Student Number" autocomplete="off">
+          <input type="text" id="quick-student-name" placeholder="Student Name" readonly>
+        </div>
+        <button type="button" id="btn-quick-checkin" class="btn-primary">
+          <svg class="icon" aria-hidden="true"><use href="#lucide-check"></use></svg>
+          Check In
+        </button>
+      </div>
+      <div id="quick-checkin-notice" aria-live="polite"></div>
+    </div>
     <div class="stats-grid" role="region" aria-label="Statistics">
       <div class="stat-card" aria-labelledby="stat-registered-label">
         <span id="stat-registered-label" class="stat-label">Total Registered</span>
@@ -740,10 +979,13 @@
         <output id="stat-percent" class="stat-value">0%</output>
       </div>
     </div>
-    <div class="quick-actions">
-      <label for="quick-checkin">Quick Check-in</label>
-      <input type="text" id="quick-checkin" placeholder="Student number" autocomplete="off">
-    </div>
+    <section class="recent-activity" aria-labelledby="recent-activity-heading">
+      <div class="section-header">
+        <h2 id="recent-activity-heading" class="text-h2">Recent Activity</h2>
+        <button type="button" class="btn-link" data-view="attendance">View All Records</button>
+      </div>
+      <ul id="recent-activity-list" class="activity-list" role="list"></ul>
+    </section>
   </section>
 
   <!--View Register container-->
@@ -803,6 +1045,49 @@
     <button type="button" class="nav-item" data-view="settings" aria-label="Settings">Settings</button>
   </nav>
 
+  <!-- Lucide SVG Sprite -->
+  <svg class="lucide-sprite" aria-hidden="true">
+    <symbol id="lucide-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </symbol>
+    <symbol id="lucide-x-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="15" y1="9" x2="9" y2="15"/>
+      <line x1="9" y1="9" x2="15" y2="15"/>
+    </symbol>
+    <symbol id="lucide-user-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <line x1="19" y1="8" x2="19" y2="14"/>
+      <line x1="22" y1="11" x2="16" y2="11"/>
+    </symbol>
+    <symbol id="lucide-user-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <line x1="19" y1="11" x2="16" y2="11"/>
+    </symbol>
+    <symbol id="lucide-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </symbol>
+    <symbol id="lucide-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </symbol>
+    <symbol id="lucide-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"/>
+    </symbol>
+    <symbol id="lucide-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+    </symbol>
+    <symbol id="lucide-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="17 8 12 3 7 8"/>
+      <line x1="12" y1="3" x2="12" y2="15"/>
+    </symbol>
+  </svg>
+
   <script>
     (function () {
       'use strict';
@@ -814,10 +1099,13 @@
       const STORAGE_KEYS = {
         STUDENTS: 'guild_sa_attendance_list',
         SETTINGS: 'guild_sa_app_settings',
+        ACTIVITY: 'guild_sa_activity_log',
       };
 
       // In-memory data store
       let students = [];
+      let activityLog = [];
+      const MAX_ACTIVITY_LOG = 50;
 
       // Schema normalization (defensive: handles legacy/malformed data)
       function normalizeStudent(student) {
@@ -840,17 +1128,16 @@
           console.error('Failed to load student data:', e);
           students = [];
         }
-        // Load theme preference
+        // Load activity log
         try {
-          const settingsRaw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-          if (settingsRaw) {
-            const settings = JSON.parse(settingsRaw);
-            if (settings.darkMode) {
-              document.documentElement.classList.add('dark-theme');
-            }
-          }
+          const raw = localStorage.getItem(STORAGE_KEYS.ACTIVITY);
+          activityLog = raw ? JSON.parse(raw) : [];
         } catch (e) {
-          console.error('Failed to load settings:', e);
+          activityLog = [];
+        }
+        // Load theme preference from cookie
+        if (dataAPI.getTheme()) {
+          document.documentElement.classList.add('dark-theme');
         }
       }
 
@@ -863,12 +1150,33 @@
         }
       }
 
-      // Save settings (theme, etc.)
-      function saveSettings(settings) {
+      function saveActivityLog() {
         try {
-          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+          localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(activityLog));
         } catch (e) {
-          console.error('Failed to save settings:', e);
+          console.error('Failed to save activity log:', e);
+        }
+      }
+
+      // Cookie helpers for theme persistence
+      function setCookie(name, value, days = 365) {
+        const expires = new Date(Date.now() + days * 864e5).toUTCString();
+        document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+      }
+      function getCookie(name) {
+        return document.cookie.split('; ').find(r => r.startsWith(name + '='))?.split('=')[1] || '';
+      }
+
+      function logActivity(type, studentName, studentNumber) {
+        activityLog.unshift({ type, studentName, studentNumber, timestamp: new Date().toISOString() });
+        if (activityLog.length > MAX_ACTIVITY_LOG) activityLog.pop();
+        saveActivityLog();
+      }
+
+      // Save settings (theme, etc.) - using cookies
+      function saveSettings(settings) {
+        if (settings.darkMode !== undefined) {
+          setCookie('theme', settings.darkMode ? 'dark' : 'light');
         }
       }
 
@@ -895,6 +1203,7 @@
           };
           students.push(student);
           saveData();
+          logActivity('register', fullName, studentNumber);
           return { ok: true, student };
         },
 
@@ -906,6 +1215,7 @@
           student.checkInTime = student.isPresent ? new Date().toISOString() : null;
           student.lastModified = new Date().toISOString();
           saveData();
+          logActivity(student.isPresent ? 'checkin' : 'checkout', student.fullName, student.studentNumber);
           return { ok: true, student };
         },
 
@@ -915,6 +1225,7 @@
           if (idx === -1) return { ok: false };
           students[idx] = { ...students[idx], ...patches, lastModified: new Date().toISOString() };
           saveData();
+          logActivity('edit', students[idx].fullName, students[idx].studentNumber);
           return { ok: true, student: students[idx] };
         },
 
@@ -922,15 +1233,19 @@
         remove: (id) => {
           const idx = students.findIndex(s => s.id === id);
           if (idx === -1) return { ok: false };
+          const student = students[idx];
           students.splice(idx, 1);
           saveData();
+          logActivity('remove', student.fullName, student.studentNumber);
           return { ok: true };
         },
 
         // Clear all
         clearAll: () => {
           students.length = 0;
+          activityLog.length = 0;
           saveData();
+          saveActivityLog();
           return { ok: true };
         },
 
@@ -942,22 +1257,16 @@
           percent: students.length
             ? Math.round((students.filter(s => s.isPresent).length / students.length) * 100)
             : 0,
-        }),
-
-        // Theme persistence
+}),
+        // Theme persistence (using cookies)
         setTheme: (darkMode) => {
-          saveSettings({ darkMode });
+          setCookie('theme', darkMode ? 'dark' : 'light', 365);
         },
         getTheme: () => {
-          try {
-            const settingsRaw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-            return settingsRaw ? JSON.parse(settingsRaw).darkMode : false;
-          } catch {
-            return false;
-          }
+          const match = document.cookie.match(/(?:^|; )theme=([^;]+)/);
+          return match ? match[1] === 'dark' : false;
         },
       };
-
       // ============================================================
       // UI UTILITIES
       // ============================================================
@@ -997,6 +1306,50 @@
         document.getElementById('stat-present').textContent = stats.present;
         document.getElementById('stat-absent').textContent = stats.absent;
         document.getElementById('stat-percent').textContent = stats.percent + '%';
+        renderRecentActivity();
+      }
+
+      function renderRecentActivity() {
+        const list = document.getElementById('recent-activity-list');
+        if (!list) return;
+        const recent = activityLog.slice(0, 5);
+
+        if (recent.length === 0) {
+          list.innerHTML = `<li style="padding: var(--space-md); text-align: center; color: var(--text-secondary);">No recent activity</li>`;
+          return;
+        }
+
+        const iconMap = {
+          checkin: 'check-circle',
+          checkout: 'x-circle',
+          register: 'user-plus',
+          remove: 'user-minus',
+          edit: 'edit'
+        };
+        const classMap = {
+          checkin: 'checkin',
+          checkout: 'checkout',
+          register: 'register',
+          remove: 'remove',
+          edit: 'edit'
+        };
+        const textMap = {
+          checkin: 'checked in',
+          checkout: 'checked out',
+          register: 'was registered',
+          remove: 'was removed',
+          edit: 'was updated'
+        };
+
+        list.innerHTML = recent.map(a => `
+          <li class="activity-item">
+            <svg class="activity-icon ${classMap[a.type]}" aria-hidden="true"><use href="#lucide-${iconMap[a.type]}"></use></svg>
+            <div class="activity-content">
+              <p class="activity-message"><strong>${escapeHtml(a.studentName)}</strong> ${textMap[a.type]}</p>
+              <time class="activity-time" datetime="${a.timestamp}">${formatTime(a.timestamp)}</time>
+            </div>
+          </li>
+        `).join('');
       }
 
       // Attendance list state
@@ -1156,23 +1509,77 @@
       });
 
       // Quick check-in
-      const quickCheckin = document.getElementById('quick-checkin');
-      quickCheckin.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          const num = quickCheckin.value.trim();
-          if (!num) return;
+      const quickStudentNumber = document.getElementById('quick-student-number');
+      const quickStudentName = document.getElementById('quick-student-name');
+      const quickCheckinNotice = document.getElementById('quick-checkin-notice');
 
-          const student = dataAPI.getByNumber(num);
-          if (student) {
-            dataAPI.togglePresence(student.id);
-            quickCheckin.value = '';
-            renderDashboardStats();
-            renderAttendeeList();
-            showNotice(document.getElementById('registration-notice'), `${student.fullName} checked in`, 'success');
-          } else {
-            showNotice(document.getElementById('registration-notice'), 'Student not found', 'error');
-          }
+      // Auto-fill name when student number loses focus
+      quickStudentNumber.addEventListener('blur', function() {
+        const num = this.value.trim();
+        if (!num) return;
+        const student = dataAPI.getByNumber(num);
+        if (student) {
+          quickStudentName.value = student.fullName;
+          quickStudentName.placeholder = 'Student Name';
+        } else {
+          quickStudentName.value = '';
+          quickStudentName.placeholder = 'Student Name (not found - add to register)';
         }
+      });
+
+      // Check In button click
+      document.getElementById('btn-quick-checkin').addEventListener('click', function() {
+        const number = quickStudentNumber.value.trim();
+        const name = quickStudentName.value.trim();
+
+        if (!number) {
+          quickCheckinNotice.textContent = 'Enter a student number';
+          quickCheckinNotice.className = 'error';
+          quickStudentNumber.focus();
+          return;
+        }
+
+        const existing = dataAPI.getByNumber(number);
+
+        if (existing) {
+          if (existing.isPresent) {
+            quickCheckinNotice.textContent = `${escapeHtml(existing.fullName)} is already checked in`;
+            quickCheckinNotice.className = 'error';
+            return;
+          }
+          // Mark present
+          dataAPI.togglePresence(existing.id);
+          quickCheckinNotice.textContent = `${escapeHtml(existing.fullName)} checked in`;
+          quickCheckinNotice.className = 'success';
+        } else {
+          // New student
+          if (!name) {
+            quickCheckinNotice.textContent = 'Student not found. Enter name to register and check in.';
+            quickCheckinNotice.className = 'error';
+            quickStudentName.focus();
+            return;
+          }
+          const addResult = dataAPI.add(number, name);
+          if (!addResult.ok) {
+            quickCheckinNotice.textContent = addResult.error;
+            quickCheckinNotice.className = 'error';
+            return;
+          }
+          // Mark present
+          dataAPI.togglePresence(addResult.student.id);
+          quickCheckinNotice.textContent = `${escapeHtml(name)} registered and checked in`;
+          quickCheckinNotice.className = 'success';
+        }
+
+        // Clear number input, keep name for reference
+        quickStudentNumber.value = '';
+        renderDashboardStats();
+        renderAttendeeList();
+      });
+
+      // View All Records button in Recent Activity
+      document.querySelector('.recent-activity .btn-link[data-view]').addEventListener('click', function() {
+        showView(this.dataset.view);
       });
 
       // Attendance search
@@ -1231,9 +1638,38 @@
         <div class="modal">
           <h3>Bulk Import Students</h3>
           <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-md);">
-            Paste CSV data (Student Number, Full Name per line). Header row optional.
+            Upload a CSV file or paste CSV data (Student Number, Full Name per line). Header row optional.
           </p>
-          <textarea id="bulk-import-textarea" placeholder="STU-001, John Doe&#10;STU-002, Jane Smith"></textarea>
+          <div class="bulk-import-options">
+            <div class="import-method">
+              <label class="import-tab active" data-method="paste">
+                <svg class="icon" aria-hidden="true"><use href="#lucide-clipboard"></use></svg>
+                Paste Text
+              </label>
+              <label class="import-tab" data-method="file">
+                <svg class="icon" aria-hidden="true"><use href="#lucide-upload"></use></svg>
+                Upload File
+              </label>
+            </div>
+            <div class="import-content">
+              <div class="import-pane active" data-pane="paste">
+                <textarea id="bulk-import-textarea" placeholder="STU-001, John Doe&#10;STU-002, Jane Smith" rows="10"></textarea>
+              </div>
+              <div class="import-pane" data-pane="file">
+                <div class="file-drop-zone" id="file-drop-zone">
+                  <svg class="icon-large" aria-hidden="true"><use href="#lucide-upload"></use></svg>
+                  <p>Drag & drop a CSV file here, or click to browse</p>
+                  <input type="file" id="bulk-import-file" accept=".csv,text/csv" style="display: none;">
+                  <p class="file-hint">Accepts .csv files</p>
+                </div>
+                <div id="file-preview" class="file-preview" style="display: none;">
+                  <p>Selected: <strong id="file-name"></strong></p>
+                  <button type="button" class="btn-link" id="file-remove">Remove</button>
+                </div>
+              </div>
+            </div>
+            <div id="bulk-import-notice" aria-live="polite" style="margin-top: var(--space-sm); min-height: 20px;"></div>
+          </div>
           <div class="modal-actions">
             <button class="btn-secondary" id="btn-bulk-cancel">Cancel</button>
             <button class="btn-primary" id="btn-bulk-confirm">Import</button>
@@ -1242,8 +1678,120 @@
       `;
       document.body.appendChild(bulkImportModal);
 
+      // Import method tabs
+      const importTabs = bulkImportModal.querySelectorAll('.import-tab');
+      const importPanes = bulkImportModal.querySelectorAll('.import-pane');
+      importTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          importTabs.forEach(t => t.classList.remove('active'));
+          importPanes.forEach(p => p.classList.remove('active'));
+          tab.classList.add('active');
+          bulkImportModal.querySelector(`.import-pane[data-pane="${tab.dataset.method}"]`).classList.add('active');
+          bulkImportModal.querySelector('#bulk-import-notice').textContent = '';
+          bulkImportModal.querySelector('#bulk-import-notice').className = '';
+        });
+      });
+
+      // File drag & drop
+      const dropZone = bulkImportModal.querySelector('#file-drop-zone');
+      const fileInput = bulkImportModal.querySelector('#bulk-import-file');
+      const filePreview = bulkImportModal.querySelector('#file-preview');
+      const fileNameEl = bulkImportModal.querySelector('#file-name');
+      const fileRemoveBtn = bulkImportModal.querySelector('#file-remove');
+      let selectedFile = null;
+
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+      });
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-over'), false);
+      });
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-over'), false);
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length) handleFile(files[0]);
+      });
+
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) handleFile(e.target.files[0]);
+      });
+
+      fileRemoveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedFile = null;
+        fileInput.value = '';
+        filePreview.style.display = 'none';
+        dropZone.style.display = 'block';
+      });
+
+      function handleFile(file) {
+        if (!file.name.endsWith('.csv') && file.type !== 'text/csv') {
+          showBulkNotice('Please select a CSV file', 'error');
+          return;
+        }
+        selectedFile = file;
+        fileNameEl.textContent = file.name;
+        dropZone.style.display = 'none';
+        filePreview.style.display = 'flex';
+        showBulkNotice('', '');
+      }
+
+      function showBulkNotice(message, type) {
+        const notice = bulkImportModal.querySelector('#bulk-import-notice');
+        notice.textContent = message;
+        notice.className = type; // 'success' or 'error'
+      }
+
+      function parseCSV(text) {
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+        const results = [];
+        for (const line of lines) {
+          // Simple CSV parsing - handles quoted fields
+          const cells = [];
+          let current = '';
+          let inQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              if (inQuotes && line[i + 1] === '"') {
+                current += '"';
+                i++;
+              } else {
+                inQuotes = !inQuotes;
+              }
+            } else if (char === ',' && !inQuotes) {
+              cells.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          cells.push(current.trim());
+          if (cells.length >= 2) {
+            results.push({ number: cells[0], name: cells[1] });
+          }
+        }
+        return results;
+      }
+
       document.getElementById('btn-bulk-import').addEventListener('click', () => {
-        document.getElementById('bulk-import-textarea').value = '';
+        selectedFile = null;
+        fileInput.value = '';
+        bulkImportModal.querySelector('#bulk-import-textarea').value = '';
+        bulkImportModal.querySelector('.import-tab[data-method="paste"]').click();
+        dropZone.style.display = 'block';
+        filePreview.style.display = 'none';
+        showBulkNotice('', '');
         bulkImportModal.classList.add('open');
       });
 
@@ -1251,26 +1799,52 @@
         bulkImportModal.classList.remove('open');
       });
 
-      document.getElementById('btn-bulk-confirm').addEventListener('click', () => {
-        const text = document.getElementById('bulk-import-textarea').value.trim();
-        if (!text) return;
+      document.getElementById('btn-bulk-confirm').addEventListener('click', async () => {
+        const activePane = bulkImportModal.querySelector('.import-pane.active');
+        const method = activePane.dataset.pane;
+        let text = '';
 
-        const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+        if (method === 'paste') {
+          text = bulkImportModal.querySelector('#bulk-import-textarea').value.trim();
+        } else if (method === 'file' && selectedFile) {
+          text = await selectedFile.text();
+        }
+
+        if (!text) {
+          showBulkNotice('Please provide CSV data', 'error');
+          return;
+        }
+
+        const records = parseCSV(text);
+        if (records.length === 0) {
+          showBulkNotice('No valid records found in CSV', 'error');
+          return;
+        }
+
         let imported = 0, errors = 0;
+        const errorDetails = [];
 
-        lines.forEach(line => {
-          const [num, name] = line.split(',').map(s => s.trim());
-          if (num && name) {
-            const result = dataAPI.add(num, name);
+        records.forEach(({ number, name }) => {
+          if (number && name) {
+            const result = dataAPI.add(number, name);
             if (result.ok) imported++;
-            else errors++;
+            else { errors++; errorDetails.push(`${number}: ${result.error}`); }
+          } else {
+            errors++;
+            errorDetails.push(`Invalid format: ${number}, ${name}`);
           }
         });
 
         bulkImportModal.classList.remove('open');
         renderAttendeeList();
         renderDashboardStats();
-        alert(`Imported: ${imported}, Errors: ${errors}`);
+        
+        let message = `Imported: ${imported}`;
+        if (errors > 0) message += `, Errors: ${errors}`;
+        if (errorDetails.length > 0) message += '\n' + errorDetails.slice(0, 5).join('\n');
+        if (errorDetails.length > 5) message += `\n... and ${errorDetails.length - 5} more errors`;
+        
+        alert(message);
       });
 
       // Settings: Reset All
@@ -1279,6 +1853,7 @@
           dataAPI.clearAll();
           renderAttendeeList();
           renderDashboardStats();
+          renderRecentActivity();
         }
       });
 
