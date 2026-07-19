@@ -362,6 +362,22 @@
       border-color: var(--color-accent);
       box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.15);
     }
+    .controls select {
+      height: var(--input-height);
+      padding: 0 var(--space-sm);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 500;
+      transition: var(--transition-fast);
+    }
+    .controls select:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.15);
+    }
     .controls button {
       height: var(--input-height);
       padding: 0 var(--space-md);
@@ -375,6 +391,39 @@
     }
     .controls button:hover {
       background: var(--bg-elevated);
+    }
+    .controls-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      min-width: 200px;
+    }
+    .controls-row label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .controls-row input[type="search"],
+    .controls-row select {
+      height: var(--input-height);
+      padding: 0 var(--space-sm);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      transition: var(--transition-fast);
+    }
+    .controls-row input[type="search"]:focus,
+    .controls-row select:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.15);
+    }
+    .controls-row select {
+      font-size: 13px;
+      font-weight: 500;
     }
 
     /* Attendee List Items */
@@ -1188,9 +1237,19 @@
   <section id="view-attendance" class="view-hidden" aria-labelledby="att-heading">
     <h2 id="att-heading">Attendance List</h2>
     <div class="controls">
-      <label for="attendance-search">Search</label>
-      <input type="search" id="attendance-search" placeholder="Search by name or number" autocomplete="off">
-      <button type="button" id="btn-sort-toggle" aria-pressed="false">Sort: A–Z</button>
+      <div class="controls-row">
+        <label for="attendance-search">Search</label>
+        <input type="search" id="attendance-search" placeholder="Search by name or number" autocomplete="off">
+      </div>
+      <div class="controls-row">
+        <label for="attendance-filter">Filter</label>
+        <select id="attendance-filter" aria-label="Filter by status">
+          <option value="all">All</option>
+          <option value="present">Present</option>
+          <option value="absent">Absent</option>
+        </select>
+      </div>
+      <button type="button" id="btn-sort-toggle" style="margin-top: 1.5rem;" aria-pressed="false">Sort: A–Z</button>
     </div>
     <div id="attendee-list" role="list" aria-label="Attendee list"></div>
   </section>
@@ -1665,10 +1724,12 @@
 
       // Attendance list state
       let sortAscending = true;
+      let filterStatus = 'all'; // 'all' | 'present' | 'absent'
 
       function renderAttendeeList() {
         const list = document.getElementById('attendee-list');
         const searchTerm = document.getElementById('attendance-search').value.toLowerCase().trim();
+        const filter = document.getElementById('attendance-filter').value;
         let studentsToRender = dataAPI.getAll();
 
         // Filter by search
@@ -1676,6 +1737,13 @@
           studentsToRender = studentsToRender.filter(s =>
             s.fullName.toLowerCase().includes(searchTerm) ||
             s.studentNumber.toLowerCase().includes(searchTerm)
+          );
+        }
+
+        // Filter by status
+        if (filter !== 'all') {
+          studentsToRender = studentsToRender.filter(s =>
+            filter === 'present' ? s.isPresent : !s.isPresent
           );
         }
 
@@ -1952,6 +2020,12 @@
         sortAscending = !sortAscending;
         e.target.textContent = sortAscending ? 'Sort: A–Z' : 'Sort: Z–A';
         e.target.setAttribute('aria-pressed', sortAscending);
+        renderAttendeeList();
+      });
+
+      // Attendance filter
+      document.getElementById('attendance-filter').addEventListener('change', () => {
+        filterStatus = document.getElementById('attendance-filter').value;
         renderAttendeeList();
       });
 
