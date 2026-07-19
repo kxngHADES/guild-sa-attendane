@@ -820,6 +820,10 @@
       border: 1px solid var(--border-default);
       color: var(--text-primary);
     }
+    .btn-primary .icon {
+      width: 18px;
+      height: 18px;
+    }
 
     /* Bulk Import Modal Enhancements */
     .bulk-import-options {
@@ -937,6 +941,181 @@
       border: 1px solid var(--color-danger);
       color: var(--color-danger);
     }
+
+    /* ===== PRINT STYLES ===== */
+    @media print {
+      .global-header,
+      .bottom-nav,
+      .controls,
+      .attendee-actions,
+      .quick-actions,
+      .form-group button,
+      .btn-link,
+      .btn-primary,
+      .btn-secondary,
+      .btn-danger,
+      .modal-overlay,
+      .quick-checkin-form,
+      .stats-grid,
+      .section-header,
+      .quick-checkin-form .btn-primary,
+      #quick-checkin-notice,
+      #registration-notice,
+      .recent-activity {
+        display: none !important;
+      }
+
+      @page {
+        size: A4;
+        margin: 20mm 15mm;
+      }
+
+      body {
+        background: white !important;
+        color: black !important;
+        font-size: 12pt;
+        line-height: 1.4;
+        height: auto;
+        overflow: visible;
+      }
+
+      .view-container {
+        max-width: none;
+        padding: 0;
+        overflow: visible;
+        height: auto;
+      }
+
+      .view-hidden,
+      .view-visible {
+        display: none !important;
+      }
+
+      #print-report {
+        display: block !important;
+        page-break-inside: avoid;
+      }
+
+      .print-header {
+        text-align: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #333;
+      }
+
+      .print-header h1 {
+        font-size: 24pt;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+        color: #333;
+      }
+
+      .print-date {
+        font-size: 11pt;
+        color: #666;
+        margin: 0;
+      }
+
+      .print-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .print-stat {
+        text-align: center;
+        padding: 12px;
+        background: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+      }
+
+      .print-stat-value {
+        display: block;
+        font-size: 28pt;
+        font-weight: 600;
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        color: #333;
+        line-height: 1.2;
+      }
+
+      .print-stat-label {
+        display: block;
+        font-size: 9pt;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #666;
+        margin-top: 4px;
+      }
+
+      .print-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11pt;
+        margin-bottom: 24px;
+      }
+
+      .print-table th,
+      .print-table td {
+        border: 1px solid #ccc;
+        padding: 8px 10px;
+        text-align: left;
+        vertical-align: middle;
+      }
+
+      .print-table th {
+        background: #f0f0f0;
+        font-weight: 600;
+        font-size: 10pt;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .print-table tr:nth-child(even) td {
+        background: #fafafa;
+      }
+
+      .print-status {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 9999px;
+        font-size: 10pt;
+        font-weight: 500;
+        text-transform: capitalize;
+      }
+
+      .print-status.present {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .print-status.absent {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .print-footer {
+        text-align: center;
+        font-size: 9pt;
+        color: #666;
+        border-top: 1px solid #ddd;
+        padding-top: 12px;
+      }
+
+      .print-footer::after {
+        content: "Page " counter(page) " of " counter(pages);
+        margin-left: 16px;
+      }
+
+      .print-empty {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        font-size: 12pt;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1036,7 +1215,7 @@
       <button type="button" id="btn-reset-all" class="btn-danger">Reset All Records</button>
     </fieldset>
 
-    <fieldset>
+<fieldset>
       <legend>Data Backup & Restore</legend>
       <button type="button" id="btn-backup-json">Backup Data (JSON)</button>
       <button type="button" id="btn-restore-json">Restore Data (JSON)</button>
@@ -1046,8 +1225,19 @@
         <span class="toggle-label">Auto-backup on changes</span>
       </label>
     </fieldset>
+
+    <fieldset>
+      <legend>Report</legend>
+      <button type="button" id="btn-print-report" class="btn-primary">
+        <svg class="icon" aria-hidden="true"><use href="#lucide-print"></use></svg>
+        Print Attendance Report
+      </button>
+    </fieldset>
   </section>
-  </main>
+
+  <!-- Print Report View (hidden, only visible during print) -->
+  <section id="print-report" class="view-hidden" aria-hidden="true"></section>
+</main>
 
   <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
     <button type="button" class="nav-item active" data-view="dashboard" aria-label="Dashboard" aria-current="page">Dashboard</button>
@@ -1096,6 +1286,11 @@
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
       <polyline points="17 8 12 3 7 8"/>
       <line x1="12" y1="3" x2="12" y2="15"/>
+    </symbol>
+    <symbol id="lucide-print" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 6 2 18 2 18 9"/>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+      <rect x="6" y="14" width="12" height="8"/>
     </symbol>
   </svg>
 
@@ -1547,6 +1742,55 @@
         });
       }
 
+      // Print Report Generation
+      function generatePrintReport() {
+        const students = dataAPI.getAll();
+        const stats = dataAPI.getStats();
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        
+        let rows = '';
+        if (students.length === 0) {
+          rows = '<tr><td colspan="4" class="print-empty">No attendees registered</td></tr>';
+        } else {
+          rows = students.map(student => `
+            <tr>
+              <td>${escapeHtml(student.studentNumber)}</td>
+              <td>${escapeHtml(student.fullName)}</td>
+              <td><span class="print-status ${student.isPresent ? 'present' : 'absent'}">${student.isPresent ? 'Present' : 'Absent'}</span></td>
+              <td>${student.checkInTime ? formatTime(student.checkInTime) : '—'}</td>
+            </tr>
+          `).join('');
+        }
+        
+        const container = document.getElementById('print-report');
+        container.innerHTML = `
+          <div class="print-header">
+            <h1>Guild Attendance Register</h1>
+            <p class="print-date">Event Date: ${dateStr} &bull; Generated: ${dateStr} ${timeStr}</p>
+          </div>
+          <div class="print-stats">
+            <div class="print-stat"><span class="print-stat-value">${stats.total}</span><span class="print-stat-label">Total Registered</span></div>
+            <div class="print-stat"><span class="print-stat-value">${stats.present}</span><span class="print-stat-label">Present</span></div>
+            <div class="print-stat"><span class="print-stat-value">${stats.absent}</span><span class="print-stat-label">Absent</span></div>
+            <div class="print-stat"><span class="print-stat-value">${stats.percent}%</span><span class="print-stat-label">Attendance Rate</span></div>
+          </div>
+          <table class="print-table">
+            <thead>
+              <tr>
+                <th>Student Number</th>
+                <th>Full Name</th>
+                <th>Status</th>
+                <th>Check-in Time</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <div class="print-footer">Generated by Guild Attendance Register &bull; ${dateStr} ${timeStr}</div>
+        `;
+      }
+
       // Edit modal state
       let editingStudentId = null;
 
@@ -1971,6 +2215,12 @@
           renderDashboardStats();
           renderRecentActivity();
         }
+      });
+
+      // Settings: Print Report
+      document.getElementById('btn-print-report').addEventListener('click', () => {
+        generatePrintReport();
+        window.print();
       });
 
       // ============================================================
