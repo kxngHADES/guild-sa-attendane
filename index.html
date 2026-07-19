@@ -218,7 +218,12 @@
     }
     @media (min-width: 480px) {
       .stats-grid {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (min-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(5, 1fr);
       }
     }
     .stat-card {
@@ -1145,6 +1150,11 @@
         color: #721c24;
       }
 
+      .print-status.late {
+        background: #fff3cd;
+        color: #856404;
+      }
+
       .print-footer {
         text-align: center;
         font-size: 9pt;
@@ -1195,11 +1205,15 @@
         <output id="stat-registered" class="stat-value">0</output>
       </div>
       <div class="stat-card" aria-labelledby="stat-present-label">
-        <span id="stat-present-label" class="stat-label">Total Present</span>
+        <span id="stat-present-label" class="stat-label">Present</span>
         <output id="stat-present" class="stat-value">0</output>
       </div>
+      <div class="stat-card" aria-labelledby="stat-late-label">
+        <span id="stat-late-label" class="stat-label">Late</span>
+        <output id="stat-late" class="stat-value">0</output>
+      </div>
       <div class="stat-card" aria-labelledby="stat-absent-label">
-        <span id="stat-absent-label" class="stat-label">Total Absent</span>
+        <span id="stat-absent-label" class="stat-label">Absent</span>
         <output id="stat-absent" class="stat-value">0</output>
       </div>
       <div class="stat-card" aria-labelledby="stat-percent-label">
@@ -1246,6 +1260,7 @@
         <select id="attendance-filter" aria-label="Filter by status">
           <option value="all">All</option>
           <option value="present">Present</option>
+          <option value="late">Late</option>
           <option value="absent">Absent</option>
         </select>
       </div>
@@ -1266,7 +1281,18 @@
         <span class="toggle-label">Dark Mode</span>
       </label>
     </fieldset>
-    
+
+    <fieldset>
+      <legend>Late Status</legend>
+      <div class="form-group">
+        <label for="late-cutoff-time">Cutoff Time</label>
+        <input type="time" id="late-cutoff-time" step="60" aria-describedby="cutoff-hint">
+        <p id="cutoff-hint" style="font-size: 12px; color: var(--text-secondary); margin-top: var(--space-xs);">
+          Students checking in after this time are marked Late. Leave empty to disable.
+        </p>
+      </div>
+    </fieldset>
+
     <fieldset>
       <legend>Data Operations</legend>
       <button type="button" id="btn-export-csv">Export CSV</button>
@@ -1379,6 +1405,7 @@
           studentNumber: student.studentNumber || '',
           fullName: student.fullName || '',
           isPresent: Boolean(student.isPresent),
+          isLate: Boolean(student.isLate),
           checkInTime: student.checkInTime || null,
           lastModified: student.lastModified || new Date().toISOString(),
         };
@@ -1400,7 +1427,7 @@
         } catch (e) {
           activityLog = [];
         }
-        // Load theme preference from cookie
+        // Load theme preference from settings
         if (dataAPI.getTheme()) {
           document.documentElement.classList.add('dark-theme');
         }
@@ -1423,25 +1450,28 @@
         }
       }
 
-      // Cookie helpers for theme persistence
-      function setCookie(name, value, days = 365) {
-        const expires = new Date(Date.now() + days * 864e5).toUTCString();
-        document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
-      }
-      function getCookie(name) {
-        return document.cookie.split('; ').find(r => r.startsWith(name + '='))?.split('=')[1] || '';
-      }
-
       function logActivity(type, studentName, studentNumber) {
         activityLog.unshift({ type, studentName, studentNumber, timestamp: new Date().toISOString() });
         if (activityLog.length > MAX_ACTIVITY_LOG) activityLog.pop();
         saveActivityLog();
       }
 
-      // Save settings (theme, etc.) - using cookies
+      // Save settings (theme, cutoff time, etc.) - using localStorage
       function saveSettings(settings) {
-        if (settings.darkMode !== undefined) {
-          setCookie('theme', settings.darkMode ? 'dark' : 'light');
+        try {
+          const current = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}');
+          const updated = { ...current, ...settings };
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updated));
+        } catch (e) {
+          console.error('Failed to save settings:', e);
+        }
+      }
+
+      function loadSettings() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}');
+        } catch (e) {
+          return {};
         }
       }
 
@@ -1463,6 +1493,7 @@
             studentNumber,
             fullName,
             isPresent: false,
+            isLate: false,
             checkInTime: null,
             lastModified: now,
           };
@@ -1477,7 +1508,23 @@
           const student = students.find(s => s.id === id);
           if (!student) return { ok: false };
           student.isPresent = !student.isPresent;
-          student.checkInTime = student.isPresent ? new Date().toISOString() : null;
+          if (student.isPresent) {
+            student.checkInTime = new Date().toISOString();
+            // Compute late status based on cutoff time
+            const cutoff = dataAPI.getLateCutoff();
+            if (cutoff) {
+              const checkIn = new Date(student.checkInTime);
+              const [hh, mm] = cutoff.split(':').map(Number);
+              const cutoffDate = new Date(checkIn);
+              cutoffDate.setHours(hh, mm, 0, 0);
+              student.isLate = checkIn > cutoffDate;
+            } else {
+              student.isLate = false;
+            }
+          } else {
+            student.checkInTime = null;
+            student.isLate = false;
+          }
           student.lastModified = new Date().toISOString();
           saveData();
           logActivity(student.isPresent ? 'checkin' : 'checkout', student.fullName, student.studentNumber);
@@ -1619,22 +1666,32 @@
           return match ? match[1] === 'true' : false;
         },
 
+        // Late cutoff time settings
+        getLateCutoff: () => {
+          const settings = loadSettings();
+          return settings.lateCutoffTime || null;
+        },
+        setLateCutoff: (time) => {
+          saveSettings({ lateCutoffTime: time });
+        },
+
         // Stats for dashboard
         getStats: () => ({
           total: students.length,
-          present: students.filter(s => s.isPresent).length,
+          present: students.filter(s => s.isPresent && !s.isLate).length,
+          late: students.filter(s => s.isPresent && s.isLate).length,
           absent: students.filter(s => !s.isPresent).length,
           percent: students.length
             ? Math.round((students.filter(s => s.isPresent).length / students.length) * 100)
             : 0,
 }),
-        // Theme persistence (using cookies)
+        // Theme persistence (using localStorage settings)
         setTheme: (darkMode) => {
-          setCookie('theme', darkMode ? 'dark' : 'light', 365);
+          saveSettings({ darkMode });
         },
         getTheme: () => {
-          const match = document.cookie.match(/(?:^|; )theme=([^;]+)/);
-          return match ? match[1] === 'dark' : false;
+          const settings = loadSettings();
+          return settings.darkMode === true;
         },
       };
       // ============================================================
@@ -1674,6 +1731,7 @@
         const stats = dataAPI.getStats();
         document.getElementById('stat-registered').textContent = stats.total;
         document.getElementById('stat-present').textContent = stats.present;
+        document.getElementById('stat-late').textContent = stats.late;
         document.getElementById('stat-absent').textContent = stats.absent;
         document.getElementById('stat-percent').textContent = stats.percent + '%';
         renderRecentActivity();
@@ -1724,7 +1782,6 @@
 
       // Attendance list state
       let sortAscending = true;
-      let filterStatus = 'all'; // 'all' | 'present' | 'absent'
 
       function renderAttendeeList() {
         const list = document.getElementById('attendee-list');
@@ -1742,9 +1799,12 @@
 
         // Filter by status
         if (filter !== 'all') {
-          studentsToRender = studentsToRender.filter(s =>
-            filter === 'present' ? s.isPresent : !s.isPresent
-          );
+          studentsToRender = studentsToRender.filter(s => {
+            if (filter === 'present') return s.isPresent && !s.isLate;
+            if (filter === 'late') return s.isPresent && s.isLate;
+            if (filter === 'absent') return !s.isPresent;
+            return true;
+          });
         }
 
         // Sort
@@ -1763,26 +1823,37 @@
           return;
         }
 
-        list.innerHTML = studentsToRender.map(student => `
-          <div class="attendee-item" data-id="${escapeHtml(student.id)}">
-            <div class="attendee-avatar">${escapeHtml(getInitials(student.fullName))}</div>
-            <div class="attendee-info">
-              <div class="attendee-name">${escapeHtml(student.fullName)}</div>
-              <div class="attendee-number">${escapeHtml(student.studentNumber)}</div>
+        list.innerHTML = studentsToRender.map(student => {
+            let statusClass, statusText;
+            if (!student.isPresent) {
+              statusClass = 'absent';
+              statusText = 'Absent';
+            } else if (student.isLate) {
+              statusClass = 'late';
+              statusText = 'Late';
+            } else {
+              statusClass = 'present';
+              statusText = 'Present';
+            }
+            return `
+            <div class="attendee-item" data-id="${escapeHtml(student.id)}">
+              <div class="attendee-avatar">${escapeHtml(getInitials(student.fullName))}</div>
+              <div class="attendee-info">
+                <div class="attendee-name">${escapeHtml(student.fullName)}</div>
+                <div class="attendee-number">${escapeHtml(student.studentNumber)}</div>
+              </div>
+              <span class="attendee-status ${statusClass}">${statusText}</span>
+              <span class="attendee-time">${formatTime(student.checkInTime)}</span>
+              <div class="attendee-actions">
+                <button class="btn-toggle" data-id="${escapeHtml(student.id)}" aria-label="${student.isPresent ? 'Check out' : 'Check in'}">
+                  ${student.isPresent ? 'Check Out' : 'Check In'}
+                </button>
+                <button class="btn-edit" data-id="${escapeHtml(student.id)}">Edit</button>
+                <button class="btn-delete danger" data-id="${escapeHtml(student.id)}">Delete</button>
+              </div>
             </div>
-            <span class="attendee-status ${student.isPresent ? 'present' : 'absent'}">
-              ${student.isPresent ? 'Present' : 'Absent'}
-            </span>
-            <span class="attendee-time">${formatTime(student.checkInTime)}</span>
-            <div class="attendee-actions">
-              <button class="btn-toggle" data-id="${escapeHtml(student.id)}" aria-label="${student.isPresent ? 'Check out' : 'Check in'}">
-                ${student.isPresent ? 'Check Out' : 'Check In'}
-              </button>
-              <button class="btn-edit" data-id="${escapeHtml(student.id)}">Edit</button>
-              <button class="btn-delete danger" data-id="${escapeHtml(student.id)}">Delete</button>
-            </div>
-          </div>
-        `).join('');
+            `;
+          }).join('');
 
         // Attach toggle handlers
         list.querySelectorAll('.btn-toggle').forEach(btn => {
@@ -1822,14 +1893,27 @@
         if (students.length === 0) {
           rows = '<tr><td colspan="4" class="print-empty">No attendees registered</td></tr>';
         } else {
-          rows = students.map(student => `
+          rows = students.map(student => {
+            let statusClass, statusText;
+            if (!student.isPresent) {
+              statusClass = 'absent';
+              statusText = 'Absent';
+            } else if (student.isLate) {
+              statusClass = 'late';
+              statusText = 'Late';
+            } else {
+              statusClass = 'present';
+              statusText = 'Present';
+            }
+            return `
             <tr>
               <td>${escapeHtml(student.studentNumber)}</td>
               <td>${escapeHtml(student.fullName)}</td>
-              <td><span class="print-status ${student.isPresent ? 'present' : 'absent'}">${student.isPresent ? 'Present' : 'Absent'}</span></td>
+              <td><span class="print-status ${statusClass}">${statusText}</span></td>
               <td>${student.checkInTime ? formatTime(student.checkInTime) : '—'}</td>
             </tr>
-          `).join('');
+            `;
+          }).join('');
         }
         
         const container = document.getElementById('print-report');
@@ -1841,6 +1925,7 @@
           <div class="print-stats">
             <div class="print-stat"><span class="print-stat-value">${stats.total}</span><span class="print-stat-label">Total Registered</span></div>
             <div class="print-stat"><span class="print-stat-value">${stats.present}</span><span class="print-stat-label">Present</span></div>
+            <div class="print-stat"><span class="print-stat-value">${stats.late}</span><span class="print-stat-label">Late</span></div>
             <div class="print-stat"><span class="print-stat-value">${stats.absent}</span><span class="print-stat-label">Absent</span></div>
             <div class="print-stat"><span class="print-stat-value">${stats.percent}%</span><span class="print-stat-label">Attendance Rate</span></div>
           </div>
@@ -1976,8 +2061,9 @@
             return;
           }
           // Mark present
-          dataAPI.togglePresence(existing.id);
-          quickCheckinNotice.textContent = `${escapeHtml(existing.fullName)} checked in`;
+          const result = dataAPI.togglePresence(existing.id);
+          const statusMsg = result.student.isLate ? ' (Late)' : '';
+          quickCheckinNotice.textContent = `${escapeHtml(existing.fullName)} checked in${statusMsg}`;
           quickCheckinNotice.className = 'success';
         } else {
           // New student
@@ -2025,7 +2111,6 @@
 
       // Attendance filter
       document.getElementById('attendance-filter').addEventListener('change', () => {
-        filterStatus = document.getElementById('attendance-filter').value;
         renderAttendeeList();
       });
 
@@ -2040,6 +2125,17 @@
       // Initialize theme toggle state
       themeToggle.checked = dataAPI.getTheme();
 
+      // Settings: Late cutoff time
+      const lateCutoffInput = document.getElementById('late-cutoff-time');
+      if (lateCutoffInput) {
+        lateCutoffInput.value = dataAPI.getLateCutoff() || '';
+        lateCutoffInput.addEventListener('change', () => {
+          dataAPI.setLateCutoff(lateCutoffInput.value || null);
+          renderAttendeeList();
+          renderDashboardStats();
+        });
+      }
+
       // Settings: Export CSV
       document.getElementById('btn-export-csv').addEventListener('click', () => {
         const students = dataAPI.getAll();
@@ -2051,7 +2147,7 @@
         const rows = students.map(s => [
           s.studentNumber,
           s.fullName,
-          s.isPresent ? 'Present' : 'Absent',
+          s.isPresent ? (s.isLate ? 'Late' : 'Present') : 'Absent',
           s.checkInTime || '',
           s.lastModified
         ]);
@@ -2457,6 +2553,7 @@
           settings: {
             darkMode: dataAPI.getTheme(),
             autoBackup: document.getElementById('auto-backup-toggle')?.checked || false,
+            lateCutoffTime: dataAPI.getLateCutoff(),
           }
         };
         const json = JSON.stringify(backupData, null, 2);
@@ -2617,6 +2714,7 @@
           settings: {
             darkMode: dataAPI.getTheme(),
             autoBackup: autoBackupToggle?.checked || false,
+            lateCutoffTime: dataAPI.getLateCutoff(),
           }
         };
         try {
@@ -2643,12 +2741,21 @@
                       studentNumber: student.studentNumber,
                       fullName: student.fullName,
                       isPresent: Boolean(student.isPresent),
+                      isLate: Boolean(student.isLate),
                       checkInTime: student.checkInTime || null,
                       lastModified: student.lastModified || new Date().toISOString(),
                     };
                     students.push(normalized);
                   }
                   if (backup.activityLog) activityLog.push(...backup.activityLog);
+                  // Restore settings
+                  if (backup.settings) {
+                    saveSettings(backup.settings);
+                    if (backup.settings.darkMode) {
+                      document.documentElement.classList.add('dark-theme');
+                      themeToggle.checked = true;
+                    }
+                  }
                   saveData();
                   saveActivityLog();
                   renderAttendeeList();
