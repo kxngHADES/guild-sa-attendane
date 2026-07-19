@@ -61,6 +61,7 @@
       --color-surface: #1e1e21;
       --color-surface-dim: #121214;
       --color-on-surface: #f0f1f1;
+      --color-on-primary-container: #e8e8e8;
       --color-success: #22a06b;
       --color-success-bg: rgba(34, 160, 107, 0.15);
       --color-danger: #e5484d;
@@ -142,6 +143,68 @@
     .app-title {
       font-size: 16px;
       font-weight: 600;
+    }
+
+    .event-selector {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-left: var(--space-md);
+      flex-shrink: 0;
+    }
+
+    #event-select {
+      height: var(--input-height);
+      padding: 0 var(--space-sm);
+      padding-right: 32px;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6b6b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      min-width: 180px;
+      max-width: 280px;
+      transition: var(--transition-fast);
+    }
+
+    #event-select:hover {
+      border-color: var(--color-accent);
+    }
+
+    #event-select:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.15);
+    }
+
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid transparent;
+      transition: var(--transition-fast);
+    }
+
+    .btn-icon:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border-color: var(--border-default);
+    }
+
+    .btn-icon .icon {
+      width: 18px;
+      height: 18px;
     }
 
     .global-header {
@@ -622,6 +685,154 @@
       color: #ffffff !important;
     }
 
+    /* Events Management */
+    .events-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-sm);
+    }
+
+    .event-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      transition: var(--transition-fast);
+    }
+
+    .event-item:hover {
+      background: var(--bg-elevated);
+    }
+
+    .event-item.active {
+      border-color: var(--color-accent);
+      background: var(--bg-elevated);
+      box-shadow: inset 3px 0 0 var(--color-accent);
+    }
+
+    .event-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .event-name-input {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 0;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .event-name-input:focus {
+      outline: none;
+    }
+
+    .event-name-input[readonly] {
+      cursor: default;
+    }
+
+    .event-meta {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .event-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      flex-shrink: 0;
+    }
+
+    .event-actions .btn-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .btn-switch {
+      font-size: 11px;
+      padding: 2px 8px;
+      height: auto;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-full);
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .btn-switch:not(:disabled):hover {
+      background: var(--color-accent);
+      color: var(--color-on-primary);
+      border-color: var(--color-accent);
+    }
+
+    .btn-switch:disabled {
+      background: var(--color-accent);
+      color: var(--color-on-primary);
+      border-color: var(--color-accent);
+      cursor: default;
+    }
+
+    .btn-rename .icon,
+    .btn-delete .icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* New Event Modal */
+    #new-event-modal .modal {
+      max-width: 400px;
+    }
+
+    #new-event-modal .modal p.text-secondary {
+      font-size: 13px;
+      margin-bottom: var(--space-md);
+    }
+
+    #new-event-modal #new-event-name {
+      width: 100%;
+      height: var(--input-height);
+      padding: 0 var(--space-sm);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: var(--transition-fast);
+    }
+
+    #new-event-modal #new-event-name:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.15);
+    }
+
+    #new-event-modal #new-event-error {
+      font-size: 12px;
+      color: var(--color-danger);
+      min-height: 16px;
+      margin-bottom: var(--space-sm);
+    }
+
+    /* Print report event name */
+    .print-header .event-name {
+      font-size: 14pt;
+      color: #666;
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
     /* View Headings */
     h1, h2 {
       margin-bottom: var(--space-md);
@@ -996,6 +1207,154 @@
       color: var(--color-danger);
     }
 
+    /* Events Management Styles */
+    .events-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-sm);
+    }
+
+    .event-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      transition: var(--transition-fast);
+    }
+
+    .event-item:hover {
+      background: var(--bg-elevated);
+    }
+
+    .event-item.active {
+      border-color: var(--color-accent);
+      background: var(--bg-elevated);
+      box-shadow: inset 3px 0 0 var(--color-accent);
+    }
+
+    .event-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .event-name-input {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 0;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .event-name-input:focus {
+      outline: none;
+    }
+
+    .event-name-input[readonly] {
+      cursor: default;
+    }
+
+    .event-meta {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .event-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      flex-shrink: 0;
+    }
+
+    .event-actions .btn-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .btn-switch {
+      font-size: 11px;
+      padding: 2px 8px;
+      height: auto;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-full);
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .btn-switch:not(:disabled):hover {
+      background: var(--color-accent);
+      color: var(--color-on-primary);
+      border-color: var(--color-accent);
+    }
+
+    .btn-switch:disabled {
+      background: var(--color-accent);
+      color: var(--color-on-primary);
+      border-color: var(--color-accent);
+      cursor: default;
+    }
+
+    .btn-rename .icon,
+    .btn-delete .icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* New Event Modal */
+    #new-event-modal .modal {
+      max-width: 400px;
+    }
+
+    #new-event-modal .modal p.text-secondary {
+      font-size: 13px;
+      margin-bottom: var(--space-md);
+    }
+
+    #new-event-modal #new-event-name {
+      width: 100%;
+      height: var(--input-height);
+      padding: 0 var(--space-sm);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: var(--transition-fast);
+    }
+
+    #new-event-modal #new-event-name:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.15);
+    }
+
+    #new-event-modal #new-event-error {
+      font-size: 12px;
+      color: var(--color-danger);
+      min-height: 16px;
+      margin-bottom: var(--space-sm);
+    }
+
+    /* Print report event name */
+    .print-header .event-name {
+      font-size: 14pt;
+      color: #666;
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
     /* ===== PRINT STYLES ===== */
     @media print {
       .global-header,
@@ -1180,6 +1539,12 @@
 <body>
   <header class="global-header" role="banner">
     <h1 class="app-title">Guild Attendance</h1>
+    <div class="event-selector">
+      <select id="event-select" aria-label="Select event"></select>
+      <button type="button" id="btn-new-event" class="btn-icon" aria-label="Create new event">
+        <svg class="icon" aria-hidden="true"><use href="#lucide-plus"></use></svg>
+      </button>
+    </div>
   </header>
   <main class="view-container" role="main">
     <!--View dashboard container-->
@@ -1318,6 +1683,15 @@
         Print Attendance Report
       </button>
     </fieldset>
+
+    <fieldset>
+      <legend>Events</legend>
+      <div id="events-list" class="events-list"></div>
+      <button type="button" id="btn-create-event" class="btn-primary" style="width:100%; margin-top:var(--space-sm);">
+        <svg class="icon" aria-hidden="true"><use href="#lucide-plus"></use></svg>
+        Create New Event
+      </button>
+    </fieldset>
   </section>
 
   <!-- Print Report View (hidden, only visible during print) -->
@@ -1377,21 +1751,28 @@
       <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
       <rect x="6" y="14" width="12" height="8"/>
     </symbol>
+    <symbol id="lucide-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </symbol>
+    <symbol id="lucide-trash-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"/>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+    </symbol>
+    <symbol id="lucide-edit-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+    </symbol>
+    <symbol id="lucide-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </symbol>
   </svg>
 
   <script>
     (function () {
       'use strict';
-
-      // ============================================================
+// ============================================================
       // DATA PERSISTENCE LAYER
       // ============================================================
-
-      const STORAGE_KEYS = {
-        STUDENTS: 'guild_sa_attendance_list',
-        SETTINGS: 'guild_sa_app_settings',
-        ACTIVITY: 'guild_sa_activity_log',
-      };
 
       // In-memory data store
       let students = [];
@@ -1411,40 +1792,63 @@
         };
       }
 
-      // Load from localStorage
+      // Load from localStorage (uses active event keys)
       function loadData() {
+        const studentsKey = eventAPI.getKey(BASE_STORAGE_KEYS.STUDENTS);
+        const activityKey = eventAPI.getKey(BASE_STORAGE_KEYS.ACTIVITY);
+        
         try {
-          const raw = localStorage.getItem(STORAGE_KEYS.STUDENTS);
+          const raw = localStorage.getItem(studentsKey);
           students = raw ? JSON.parse(raw).map(normalizeStudent) : [];
         } catch (e) {
           console.error('Failed to load student data:', e);
           students = [];
         }
+        
         // Load activity log
         try {
-          const raw = localStorage.getItem(STORAGE_KEYS.ACTIVITY);
+          const raw = localStorage.getItem(activityKey);
           activityLog = raw ? JSON.parse(raw) : [];
         } catch (e) {
           activityLog = [];
         }
-        // Load theme preference from settings
-        if (dataAPI.getTheme()) {
-          document.documentElement.classList.add('dark-theme');
+        
+        // Load theme preference from event settings
+        const settingsKey = eventAPI.getKey(BASE_STORAGE_KEYS.SETTINGS);
+        if (settingsKey) {
+          try {
+            const settings = JSON.parse(localStorage.getItem(settingsKey) || '{}');
+            if (settings.darkMode) {
+              document.documentElement.classList.add('dark-theme');
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+        
+        // Update student count in registry
+        const activeId = eventAPI.getActiveId();
+        if (activeId) {
+          eventAPI.updateStudentCount(activeId, students.length);
         }
       }
 
-      // Save to localStorage
+      // Save to localStorage (uses active event keys)
       function saveData() {
+        const studentsKey = eventAPI.getKey(BASE_STORAGE_KEYS.STUDENTS);
+        if (!studentsKey) return;
         try {
-          localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
+          localStorage.setItem(studentsKey, JSON.stringify(students));
         } catch (e) {
           console.error('Failed to save student data:', e);
         }
       }
 
       function saveActivityLog() {
+        const activityKey = eventAPI.getKey(BASE_STORAGE_KEYS.ACTIVITY);
+        if (!activityKey) return;
         try {
-          localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(activityLog));
+          localStorage.setItem(activityKey, JSON.stringify(activityLog));
         } catch (e) {
           console.error('Failed to save activity log:', e);
         }
@@ -1456,20 +1860,24 @@
         saveActivityLog();
       }
 
-      // Save settings (theme, cutoff time, etc.) - using localStorage
+      // Save settings (theme, cutoff time, etc.) - using event-specific localStorage
       function saveSettings(settings) {
+        const settingsKey = eventAPI.getKey(BASE_STORAGE_KEYS.SETTINGS);
+        if (!settingsKey) return;
         try {
-          const current = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}');
+          const current = JSON.parse(localStorage.getItem(settingsKey) || '{}');
           const updated = { ...current, ...settings };
-          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updated));
+          localStorage.setItem(settingsKey, JSON.stringify(updated));
         } catch (e) {
           console.error('Failed to save settings:', e);
         }
       }
 
       function loadSettings() {
+        const settingsKey = eventAPI.getKey(BASE_STORAGE_KEYS.SETTINGS);
+        if (!settingsKey) return {};
         try {
-          return JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}');
+          return JSON.parse(localStorage.getItem(settingsKey) || '{}');
         } catch (e) {
           return {};
         }
@@ -1500,6 +1908,9 @@
           students.push(student);
           saveData();
           logActivity('register', fullName, studentNumber);
+          // Update student count in registry
+          const activeId = eventAPI.getActiveId();
+          if (activeId) eventAPI.updateStudentCount(activeId, students.length);
           return { ok: true, student };
         },
 
@@ -1549,22 +1960,29 @@
           students.splice(idx, 1);
           saveData();
           logActivity('remove', student.fullName, student.studentNumber);
+          // Update student count in registry
+          const activeId = eventAPI.getActiveId();
+          if (activeId) eventAPI.updateStudentCount(activeId, students.length);
           return { ok: true };
         },
 
-        // Clear all
+        // Clear all (current event only)
         clearAll: () => {
           students.length = 0;
           activityLog.length = 0;
           saveData();
           saveActivityLog();
+          const activeId = eventAPI.getActiveId();
+          if (activeId) eventAPI.updateStudentCount(activeId, 0);
           return { ok: true };
         },
 
-        // Backup/Restore (JSON)
+        // Export all data for backup (includes event metadata)
         exportAll: () => {
+          const activeEvent = eventAPI.getActive();
           const data = {
             version: 1,
+            event: activeEvent ? { id: activeEvent.id, name: activeEvent.name } : null,
             exportedAt: new Date().toISOString(),
             students: students.map(s => ({ ...s })),
             theme: dataAPI.getTheme() ? 'dark' : 'light',
@@ -1579,8 +1997,10 @@
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
+          const activeEvent = eventAPI.getActive();
+          const eventName = activeEvent ? activeEvent.name.replace(/[^a-z0-9]/gi, '_') : 'attendance';
           const dateStr = new Date().toISOString().slice(0, 10);
-          a.download = `guild-attendance-backup-${dateStr}.json`;
+          a.download = `guild-attendance-backup-${eventName}-${dateStr}.json`;
           a.click();
           URL.revokeObjectURL(url);
         },
@@ -1651,6 +2071,10 @@
           saveData();
           saveActivityLog();
 
+          // Update student count in registry
+          const activeId = eventAPI.getActiveId();
+          if (activeId) eventAPI.updateStudentCount(activeId, students.length);
+
           return {
             ok: true,
             stats: { imported, skipped, errors, errorDetails }
@@ -1659,7 +2083,7 @@
 
         // Auto-backup
         setAutoBackup: (enabled) => {
-          setCookie('autoBackup', enabled ? 'true' : 'false', 365);
+          localStorage.setItem('guild_sa_auto_backup', enabled ? 'true' : 'false');
         },
         getAutoBackup: () => {
           const match = document.cookie.match(/(?:^|; )autoBackup=([^;]+)/);
@@ -1684,16 +2108,261 @@
           percent: students.length
             ? Math.round((students.filter(s => s.isPresent).length / students.length) * 100)
             : 0,
-}),
-        // Theme persistence (using localStorage settings)
+        }),
+
+        // Theme persistence (using event-specific settings)
         setTheme: (darkMode) => {
           saveSettings({ darkMode });
         },
         getTheme: () => {
           const settings = loadSettings();
           return settings.darkMode === true;
+},
+      };
+      // ============================================================
+      // EVENT MANAGEMENT API
+      // ============================================================
+
+      // Event storage keys
+      const EVENT_STORAGE_KEYS = {
+        REGISTRY: 'guild_sa_events',
+        ACTIVE_EVENT: 'guild_sa_active_event',
+      };
+
+      // Base storage key prefixes (will be combined with event ID)
+      const BASE_STORAGE_KEYS = {
+        STUDENTS: 'guild_sa_attendance_',
+        SETTINGS: 'guild_sa_settings_',
+        ACTIVITY: 'guild_sa_activity_',
+        AUTO_BACKUP: 'guild_sa_auto_backup_',
+      };
+
+      // In-memory event state
+      let events = [];
+      let activeEventId = null;
+
+      // Get dynamic storage key for current event
+      function getStorageKey(baseKey) {
+        if (!activeEventId) return null;
+        return `${baseKey}${activeEventId}`;
+      }
+
+      // Load events registry
+      function loadEventsRegistry() {
+        try {
+          const raw = localStorage.getItem(EVENT_STORAGE_KEYS.REGISTRY);
+          events = raw ? JSON.parse(raw) : [];
+        } catch (e) {
+          console.error('Failed to load events registry:', e);
+          events = [];
+        }
+      }
+
+      // Save events registry
+      function saveEventsRegistry() {
+        try {
+          localStorage.setItem(EVENT_STORAGE_KEYS.REGISTRY, JSON.stringify(events));
+        } catch (e) {
+          console.error('Failed to save events registry:', e);
+        }
+      }
+
+      // Generate unique event ID
+      function generateEventId() {
+        return `event_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      }
+
+      // Migrate legacy data (runs once on first load)
+      function migrateLegacyData() {
+        const legacyStudents = localStorage.getItem('guild_sa_attendance_list');
+        const legacyActivity = localStorage.getItem('guild_sa_activity_log');
+        const legacySettings = localStorage.getItem('guild_sa_app_settings');
+        const legacyAutoBackup = localStorage.getItem('guild_sa_auto_backup_data');
+
+        if (!legacyStudents && !legacyActivity && !legacySettings && !legacyAutoBackup) {
+          return; // No legacy data to migrate
+        }
+
+        // Create default event
+        const defaultEvent = {
+          id: 'event_1',
+          name: 'Guild Attendance',
+          createdAt: new Date().toISOString(),
+          lastAccessed: new Date().toISOString(),
+          studentCount: 0,
+        };
+        events = [defaultEvent];
+        saveEventsRegistry();
+        activeEventId = 'event_1';
+        localStorage.setItem(EVENT_STORAGE_KEYS.ACTIVE_EVENT, 'event_1');
+
+        // Migrate data to new event-specific keys
+        if (legacyStudents) {
+          localStorage.setItem(`${BASE_STORAGE_KEYS.STUDENTS}event_1`, legacyStudents);
+        }
+        if (legacyActivity) {
+          localStorage.setItem(`${BASE_STORAGE_KEYS.ACTIVITY}event_1`, legacyActivity);
+        }
+        if (legacySettings) {
+          localStorage.setItem(`${BASE_STORAGE_KEYS.SETTINGS}event_1`, legacySettings);
+        }
+        if (legacyAutoBackup) {
+          localStorage.setItem(`${BASE_STORAGE_KEYS.AUTO_BACKUP}event_1`, legacyAutoBackup);
+        }
+
+        // Remove legacy keys
+        localStorage.removeItem('guild_sa_attendance_list');
+        localStorage.removeItem('guild_sa_activity_log');
+        localStorage.removeItem('guild_sa_app_settings');
+        localStorage.removeItem('guild_sa_auto_backup_data');
+
+        console.log('Migrated legacy data to event_1 (Guild Attendance)');
+      }
+
+      // Initialize event system
+      function initEventSystem() {
+        loadEventsRegistry();
+
+        // Check if migration needed
+        const hasLegacyData = localStorage.getItem('guild_sa_attendance_list') ||
+                              localStorage.getItem('guild_sa_activity_log') ||
+                              localStorage.getItem('guild_sa_app_settings') ||
+                              localStorage.getItem('guild_sa_auto_backup_data');
+        
+        if (hasLegacyData && events.length === 0) {
+          migrateLegacyData();
+        } else if (events.length === 0) {
+          // First run - create default event
+          const defaultEvent = {
+            id: 'event_1',
+            name: 'Guild Attendance',
+            createdAt: new Date().toISOString(),
+            lastAccessed: new Date().toISOString(),
+            studentCount: 0,
+          };
+          events = [defaultEvent];
+          saveEventsRegistry();
+        }
+
+        // Get active event ID
+        activeEventId = localStorage.getItem(EVENT_STORAGE_KEYS.ACTIVE_EVENT) || events[0]?.id;
+        
+        // Ensure active event exists
+        if (!events.find(e => e.id === activeEventId)) {
+          activeEventId = events[0]?.id;
+        }
+
+        if (activeEventId) {
+          localStorage.setItem(EVENT_STORAGE_KEYS.ACTIVE_EVENT, activeEventId);
+        }
+      }
+
+      // Event API
+      const eventAPI = {
+        getAll: () => events.map(e => ({ ...e })),
+
+        getActive: () => events.find(e => e.id === activeEventId) || null,
+
+        getActiveId: () => activeEventId,
+
+        // Get storage key for current active event
+        getKey: (baseKey) => getStorageKey(baseKey),
+
+        create: (name) => {
+          const newEvent = {
+            id: generateEventId(),
+            name: name.trim() || 'New Event',
+            createdAt: new Date().toISOString(),
+            lastAccessed: new Date().toISOString(),
+            studentCount: 0,
+          };
+          events.push(newEvent);
+          saveEventsRegistry();
+          return newEvent;
+        },
+
+        rename: (id, name) => {
+          const event = events.find(e => e.id === id);
+          if (event) {
+            event.name = name.trim() || event.name;
+            saveEventsRegistry();
+          }
+        },
+
+        delete: (id) => {
+          if (events.length <= 1) return false; // Prevent deleting last event
+          
+          const idx = events.findIndex(e => e.id === id);
+          if (idx === -1) return false;
+
+          // Remove event data from localStorage
+          Object.values(BASE_STORAGE_KEYS).forEach(baseKey => {
+            localStorage.removeItem(`${baseKey}${id}`);
+          });
+
+          // Remove from registry
+          events.splice(idx, 1);
+          saveEventsRegistry();
+
+          // If deleted event was active, switch to another
+          if (activeEventId === id) {
+            eventAPI.setActive(events[0].id);
+          }
+
+          return true;
+        },
+
+        setActive: (id) => {
+          if (activeEventId === id) return Promise.resolve();
+          
+          // Save current event data before switching
+          if (activeEventId) {
+            saveData();
+            saveActivityLog();
+          }
+
+          activeEventId = id;
+          localStorage.setItem(EVENT_STORAGE_KEYS.ACTIVE_EVENT, id);
+
+          // Update last accessed
+          const event = events.find(e => e.id === id);
+          if (event) {
+            event.lastAccessed = new Date().toISOString();
+            saveEventsRegistry();
+          }
+
+          // Load new event data
+          loadData();
+          
+          // Refresh UI
+          renderEventSelector();
+          renderEventsList();
+          
+          // Re-render current view
+          const currentView = document.querySelector('.view-visible');
+          if (currentView) {
+            const viewId = currentView.id;
+            if (viewId === 'view-dashboard') renderDashboardStats();
+            else if (viewId === 'view-attendance') renderAttendeeList();
+          }
+
+          return Promise.resolve();
+        },
+
+        // Get storage key for current active event (for backward compatibility with loadData/saveData)
+        getKey: (baseKey) => getStorageKey(baseKey),
+
+        updateStudentCount: (id, count) => {
+          const event = events.find(e => e.id === id);
+          if (event) {
+            event.studentCount = count;
+            saveEventsRegistry();
+            renderEventSelector();
+            renderEventsList();
+          }
         },
       };
+
       // ============================================================
       // UI UTILITIES
       // ============================================================
@@ -1888,6 +2557,7 @@
         const now = new Date();
         const dateStr = now.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        const activeEvent = eventAPI.getActive();
         
         let rows = '';
         if (students.length === 0) {
@@ -1920,6 +2590,7 @@
         container.innerHTML = `
           <div class="print-header">
             <h1>Guild Attendance Register</h1>
+            ${activeEvent ? `<p class="event-name">${escapeHtml(activeEvent.name)}</p>` : ''}
             <p class="print-date">Event Date: ${dateStr} &bull; Generated: ${dateStr} ${timeStr}</p>
           </div>
           <div class="print-stats">
@@ -2545,24 +3216,15 @@
 
       // Download JSON backup
       document.getElementById('btn-download-json').addEventListener('click', () => {
-        const backupData = {
-          version: 1,
-          exportedAt: new Date().toISOString(),
-          students: dataAPI.getAll(),
-          activityLog: activityLog,
-          settings: {
-            darkMode: dataAPI.getTheme(),
-            autoBackup: document.getElementById('auto-backup-toggle')?.checked || false,
-            lateCutoffTime: dataAPI.getLateCutoff(),
-          }
-        };
-        const json = JSON.stringify(backupData, null, 2);
+        const json = dataAPI.exportAll();
         const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
+        const activeEvent = eventAPI.getActive();
+        const eventName = activeEvent ? activeEvent.name.replace(/[^a-z0-9]/gi, '_') : 'attendance';
         const dateStr = new Date().toISOString().slice(0, 10);
-        a.download = `guild-attendance-backup-${dateStr}.json`;
+        a.download = `guild-attendance-backup-${eventName}-${dateStr}.json`;
         a.click();
         URL.revokeObjectURL(url);
         jsonModal.classList.remove('open');
@@ -2577,91 +3239,25 @@
 
         try {
           const text = await jsonRestoreFile.text();
-          const backup = JSON.parse(text);
+          const merge = jsonModal.querySelector('#json-restore-merge').checked;
+          const result = dataAPI.importAll(text, { strategy: merge ? 'merge' : 'replace' });
 
-          if (!backup || !Array.isArray(backup.students)) {
-            showJsonRestoreNotice('Invalid backup file format', 'error');
+          if (!result.ok) {
+            showJsonRestoreNotice(result.error, 'error');
             return;
           }
-
-          const merge = jsonModal.querySelector('#json-restore-merge').checked;
-          let imported = 0, errors = 0;
-          const errorDetails = [];
-
-          if (!merge) {
-            dataAPI.clearAll();
-          }
-
-          // Restore students
-          for (const student of backup.students) {
-            const normalized = {
-              id: student.id,
-              studentNumber: student.studentNumber,
-              fullName: student.fullName,
-              isPresent: Boolean(student.isPresent),
-              checkInTime: student.checkInTime || null,
-              lastModified: student.lastModified || new Date().toISOString(),
-            };
-            const existing = students.find(s => s.id === normalized.id || s.studentNumber === normalized.studentNumber);
-            if (existing) {
-              if (merge) {
-                // Update existing
-                Object.assign(existing, normalized);
-                imported++;
-              } else {
-                errors++;
-                errorDetails.push(`${normalized.studentNumber}: Duplicate ID/number`);
-              }
-            } else {
-              students.push(normalized);
-              imported++;
-            }
-          }
-
-          // Restore activity log (merge or replace)
-          if (Array.isArray(backup.activityLog)) {
-            if (merge) {
-              // Merge: add new activities, avoid duplicates by timestamp+type+studentNumber
-              const existingKeys = new Set(activityLog.map(a => `${a.timestamp}|${a.type}|${a.studentNumber}`));
-              for (const activity of backup.activityLog) {
-                const key = `${activity.timestamp}|${activity.type}|${activity.studentNumber}`;
-                if (!existingKeys.has(key)) {
-                  activityLog.unshift(activity);
-                  existingKeys.add(key);
-                }
-              }
-              if (activityLog.length > MAX_ACTIVITY_LOG) activityLog.length = MAX_ACTIVITY_LOG;
-            } else {
-              activityLog.length = 0;
-              activityLog.push(...backup.activityLog);
-              if (activityLog.length > MAX_ACTIVITY_LOG) activityLog.length = MAX_ACTIVITY_LOG;
-            }
-          }
-
-          // Restore settings
-          if (backup.settings) {
-            if (backup.settings.darkMode !== undefined) {
-              dataAPI.setTheme(backup.settings.darkMode);
-              document.documentElement.classList.toggle('dark-theme', backup.settings.darkMode);
-              document.getElementById('theme-toggle').checked = backup.settings.darkMode;
-            }
-            if (backup.settings.autoBackup !== undefined) {
-              document.getElementById('auto-backup-toggle').checked = backup.settings.autoBackup;
-            }
-          }
-
-          saveData();
-          saveActivityLog();
 
           jsonModal.classList.remove('open');
           renderAttendeeList();
           renderDashboardStats();
           renderRecentActivity();
+          renderEventsList();
+          renderEventSelector();
 
-          let message = `Restored: ${imported} students`;
-          if (errors > 0) message += `, Errors: ${errors}`;
-          if (errorDetails.length > 0) message += '\n' + errorDetails.slice(0, 5).join('\n');
-          if (errorDetails.length > 5) message += `\n... and ${errorDetails.length - 5} more errors`;
+          let message = `Restored: ${result.stats.imported} students`;
+          if (result.stats.errors > 0) message += `, Errors: ${result.stats.errors}`;
+          if (result.stats.errorDetails.length > 0) message += '\n' + result.stats.errorDetails.slice(0, 5).join('\n');
+          if (result.stats.errorDetails.length > 5) message += `\n... and ${result.stats.errorDetails.length - 5} more errors`;
           alert(message);
 
         } catch (e) {
@@ -2673,6 +3269,64 @@
       // Cancel button
       document.getElementById('btn-json-cancel').addEventListener('click', () => {
         jsonModal.classList.remove('open');
+      });
+
+      // New Event Modal
+      const newEventModal = document.createElement('div');
+      newEventModal.className = 'modal-overlay';
+      newEventModal.id = 'new-event-modal';
+      newEventModal.innerHTML = `
+        <div class="modal">
+          <h3>Create New Event</h3>
+          <p class="text-secondary">Enter a name for the new event (e.g., "Weekly Raid - Jan 20")</p>
+          <input type="text" id="new-event-name" placeholder="Event name" maxlength="60">
+          <div id="new-event-error"></div>
+          <div class="modal-actions">
+            <button class="btn-secondary" id="btn-new-event-cancel">Cancel</button>
+            <button class="btn-primary" id="btn-new-event-confirm">Create</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(newEventModal);
+
+      function showNewEventModal() {
+        const nameInput = newEventModal.querySelector('#new-event-name');
+        const errorEl = newEventModal.querySelector('#new-event-error');
+        nameInput.value = '';
+        errorEl.textContent = '';
+        newEventModal.classList.add('open');
+        setTimeout(() => nameInput.focus(), 100);
+      }
+
+      function hideNewEventModal() {
+        newEventModal.classList.remove('open');
+      }
+
+      newEventModal.querySelector('#btn-new-event-cancel').addEventListener('click', hideNewEventModal);
+      newEventModal.querySelector('#btn-new-event-confirm').addEventListener('click', () => {
+        const nameInput = newEventModal.querySelector('#new-event-name');
+        const errorEl = newEventModal.querySelector('#new-event-error');
+        const name = nameInput.value.trim();
+        if (!name) {
+          errorEl.textContent = 'Please enter an event name';
+          return;
+        }
+        if (name.length > 60) {
+          errorEl.textContent = 'Name must be 60 characters or less';
+          return;
+        }
+        const newEvent = eventAPI.create(name);
+        hideNewEventModal();
+        eventAPI.setActive(newEvent.id);
+      });
+
+      newEventModal.querySelector('#new-event-name').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') newEventModal.querySelector('#btn-new-event-confirm').click();
+        else if (e.key === 'Escape') hideNewEventModal();
+      });
+
+      newEventModal.addEventListener('click', (e) => {
+        if (e.target === newEventModal) hideNewEventModal();
       });
 
       // Auto-backup toggle
@@ -2726,13 +3380,16 @@
 
       // Restore auto-backup on load (check BEFORE loadData)
       function checkAutoBackupRestore() {
-        const autoBackup = localStorage.getItem('guild_sa_auto_backup_data');
+        const activeEventId = eventAPI.getActiveId();
+        const autoBackupKey = activeEventId ? `${BASE_STORAGE_KEYS.AUTO_BACKUP}${activeEventId}` : 'guild_sa_auto_backup_data';
+        const autoBackup = localStorage.getItem(autoBackupKey);
         if (autoBackup) {
           try {
             const backup = JSON.parse(autoBackup);
             if (backup.students && backup.students.length > 0) {
               // Check if main data store is empty (fresh install or cleared)
-              const currentData = localStorage.getItem(STORAGE_KEYS.STUDENTS);
+              const studentsKey = eventAPI.getKey(BASE_STORAGE_KEYS.STUDENTS);
+              const currentData = studentsKey ? localStorage.getItem(studentsKey) : null;
               if (!currentData || JSON.parse(currentData).length === 0) {
                 if (confirm('An auto-backup was found (' + new Date(backup.exportedAt).toLocaleString() + '). Restore it?')) {
                   for (const student of backup.students) {
@@ -2840,12 +3497,262 @@
       });
 
       // ============================================================
+      // EVENT UI RENDERING & HANDLERS
+      // ============================================================
+
+      // Render event selector dropdown in header
+      function renderEventSelector() {
+        const select = document.getElementById('event-select');
+        if (!select) return;
+        
+        const activeId = eventAPI.getActiveId();
+        select.innerHTML = events.map(e => 
+          `<option value="${escapeHtml(e.id)}" ${e.id === activeId ? 'selected' : ''}>${escapeHtml(e.name)}</option>`
+        ).join('');
+      }
+
+      // Render events list in Settings
+      function renderEventsList() {
+        const container = document.getElementById('events-list');
+        if (!container) return;
+
+        const activeId = eventAPI.getActiveId();
+        
+        container.innerHTML = events.map(event => {
+          const isActive = event.id === activeId;
+          return `
+            <div class="event-item${isActive ? ' active' : ''}" data-id="${escapeHtml(event.id)}">
+              <div class="event-info">
+                <input type="text" class="event-name-input" value="${escapeHtml(event.name)}" data-id="${escapeHtml(event.id)}" readonly>
+                <span class="event-meta">${event.studentCount} students • ${formatDate(event.lastAccessed)}</span>
+              </div>
+              <div class="event-actions">
+                <button class="btn-switch${isActive ? ' disabled' : ''}" data-id="${escapeHtml(event.id)}" ${isActive ? 'disabled' : ''}>
+                  ${isActive ? 'Active' : 'Switch'}
+                </button>
+                <button class="btn-icon btn-rename" data-id="${escapeHtml(event.id)}" aria-label="Rename event">
+                  <svg class="icon" aria-hidden="true"><use href="#lucide-edit-2"></use></svg>
+                </button>
+                <button class="btn-icon btn-delete danger" data-id="${escapeHtml(event.id)}" aria-label="Delete event">
+                  <svg class="icon" aria-hidden="true"><use href="#lucide-trash-2"></use></svg>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Add event listeners
+        container.querySelectorAll('.btn-switch:not(.disabled)').forEach(btn => {
+          btn.addEventListener('click', () => eventAPI.setActive(btn.dataset.id));
+        });
+
+        container.querySelectorAll('.btn-rename').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const eventId = btn.dataset.id;
+            const input = container.querySelector(`.event-name-input[data-id="${escapeHtml(eventId)}"]`);
+            if (input) {
+              input.readOnly = false;
+              input.focus();
+              input.select();
+              
+              const save = () => {
+                input.readOnly = true;
+                const newName = input.value.trim();
+                if (newName && newName !== input.defaultValue) {
+                  eventAPI.rename(eventId, newName);
+                  renderEventsList();
+                  renderEventSelector();
+                } else {
+                  input.value = input.defaultValue;
+                }
+              };
+              
+              input.addEventListener('blur', save, { once: true });
+              input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') save();
+                else if (e.key === 'Escape') {
+                  input.value = input.defaultValue;
+                  input.blur();
+                }
+              });
+            }
+          });
+        });
+
+        container.querySelectorAll('.btn-delete').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const eventId = btn.dataset.id;
+            const event = events.find(e => e.id === eventId);
+            if (!event) return;
+            
+            if (confirm(`Delete event "${event.name}" and all its data (${event.studentCount} students)? This cannot be undone.`)) {
+              if (eventAPI.delete(eventId)) {
+                renderEventsList();
+                renderEventSelector();
+              }
+            }
+          });
+        });
+      }
+
+      function formatDate(iso) {
+        if (!iso) return 'Never';
+        const d = new Date(iso);
+        return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      // Header event selector change handler
+      const eventSelect = document.getElementById('event-select');
+      if (eventSelect) {
+        eventSelect.addEventListener('change', (e) => {
+          eventAPI.setActive(e.target.value);
+        });
+      }
+
+      // Header new event button
+      const newEventBtn = document.getElementById('btn-new-event');
+      if (newEventBtn) {
+        newEventBtn.addEventListener('click', showNewEventModal);
+      }
+
+      // Settings create event button
+      const createEventBtn = document.getElementById('btn-create-event');
+      if (createEventBtn) {
+        createEventBtn.addEventListener('click', showNewEventModal);
+      }
+
+      // ============================================================
+      // EVENT SELECTOR & EVENTS LIST RENDERING
+      // ============================================================
+
+      // Render event selector dropdown in header
+      function renderEventSelector() {
+        const select = document.getElementById('event-select');
+        if (!select) return;
+        
+        const activeId = eventAPI.getActiveId();
+        select.innerHTML = events.map(e => 
+          `<option value="${e.id}" ${e.id === activeId ? 'selected' : ''}>${escapeHtml(e.name)}</option>`
+        ).join('');
+      }
+
+      // Render events list in Settings
+      function renderEventsList() {
+        const container = document.getElementById('events-list');
+        if (!container) return;
+        
+        const activeId = eventAPI.getActiveId();
+        container.innerHTML = events.map(event => `
+          <div class="event-item ${event.id === activeId ? 'active' : ''}" data-id="${escapeHtml(event.id)}">
+            <div class="event-info">
+              <input type="text" class="event-name-input" value="${escapeHtml(event.name)}" data-id="${escapeHtml(event.id)}" readonly>
+              <span class="event-meta">${event.studentCount} students &bull; Last opened ${formatDate(event.lastAccessed)}</span>
+            </div>
+            <div class="event-actions">
+              <button class="btn-switch ${event.id === activeId ? 'disabled' : ''}" data-id="${escapeHtml(event.id)}" ${event.id === activeId ? 'disabled' : ''}>
+                ${event.id === activeId ? 'Active' : 'Switch'}
+              </button>
+              <button class="btn-icon btn-rename" data-id="${event.id}" aria-label="Rename event">
+                <svg class="icon" aria-hidden="true"><use href="#lucide-edit-2"></use></svg>
+              </button>
+              <button class="btn-icon btn-delete danger" data-id="${event.id}" aria-label="Delete event">
+                <svg class="icon" aria-hidden="true"><use href="#lucide-trash-2"></use></svg>
+              </button>
+            </div>
+          </div>
+        `).join('');
+
+        // Attach handlers
+        container.querySelectorAll('.btn-switch:not(:disabled)').forEach(btn => {
+          btn.addEventListener('click', () => eventAPI.setActive(btn.dataset.id));
+        });
+
+        container.querySelectorAll('.btn-rename').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const input = container.querySelector(`.event-name-input[data-id="${id}"]`);
+            if (input) {
+              input.readOnly = false;
+              input.focus();
+              input.select();
+              
+              const save = () => {
+                input.readOnly = true;
+                const newName = input.value.trim();
+                if (newName && newName !== input.defaultValue) {
+                  eventAPI.rename(id, newName);
+                  renderEventsList();
+                  renderEventSelector();
+                } else {
+                  renderEventsList();
+                }
+              };
+              
+              input.addEventListener('blur', save, { once: true });
+              input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                  input.blur();
+                } else if (e.key === 'Escape') {
+                  input.value = input.defaultValue;
+                  input.blur();
+                }
+              });
+            }
+          });
+        });
+
+        container.querySelectorAll('.btn-delete').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const event = events.find(e => e.id === id);
+            if (!event) return;
+            
+            if (confirm(`Delete "${event.name}"? This will remove all ${event.studentCount} students and cannot be undone.`)) {
+              if (eventAPI.delete(id)) {
+                renderEventsList();
+                renderEventSelector();
+                renderCurrentView();
+              } else {
+                alert('Cannot delete the last event.');
+              }
+            }
+          });
+        });
+
+        // New event button
+        const createBtn = document.getElementById('btn-create-event');
+        if (createBtn) {
+          createBtn.onclick = () => showNewEventModal();
+        }
+      }
+
+      // Re-render current view after event switch
+      function renderCurrentView() {
+        const currentView = document.querySelector('.view-visible');
+        if (!currentView) return;
+        
+        const viewId = currentView.id;
+        if (viewId === 'view-dashboard') renderDashboardStats();
+        else if (viewId === 'view-attendance') renderAttendeeList();
+        else if (viewId === 'view-registration') {
+          // Reset form if not in edit mode
+          const regForm = document.getElementById('registration-form');
+          if (regForm && !regForm.dataset.editMode) {
+            closeEditModal();
+          }
+        }
+      }
+
+      // ============================================================
       // INITIALIZATION
       // ============================================================
 
       function init() {
+        initEventSystem();
         checkAutoBackupRestore();
         loadData();
+        renderEventSelector();
+        renderEventsList();
         renderDashboardStats();
         renderAttendeeList();
       }
