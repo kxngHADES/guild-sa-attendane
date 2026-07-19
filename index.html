@@ -1035,6 +1035,17 @@
       <button type="button" id="btn-bulk-import">Bulk Import</button>
       <button type="button" id="btn-reset-all" class="btn-danger">Reset All Records</button>
     </fieldset>
+
+    <fieldset>
+      <legend>Data Backup & Restore</legend>
+      <button type="button" id="btn-backup-json">Backup Data (JSON)</button>
+      <button type="button" id="btn-restore-json">Restore Data (JSON)</button>
+      <label class="toggle-switch" style="margin-top: var(--space-sm);">
+        <input type="checkbox" id="auto-backup-toggle" role="switch" aria-label="Auto backup">
+        <span class="toggle-slider" aria-hidden="true"></span>
+        <span class="toggle-label">Auto-backup on changes</span>
+      </label>
+    </fieldset>
   </section>
   </main>
 
@@ -1247,6 +1258,111 @@
           saveData();
           saveActivityLog();
           return { ok: true };
+        },
+
+        // Backup/Restore (JSON)
+        exportAll: () => {
+          const data = {
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            students: students.map(s => ({ ...s })),
+            theme: dataAPI.getTheme() ? 'dark' : 'light',
+            activityLog: [...activityLog],
+          };
+          return JSON.stringify(data, null, 2);
+        },
+
+        downloadBackup: () => {
+          const json = dataAPI.exportAll();
+          const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          const dateStr = new Date().toISOString().slice(0, 10);
+          a.download = `guild-attendance-backup-${dateStr}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+
+        importAll: (jsonString, options = {}) => {
+          let parsed;
+          try {
+            parsed = JSON.parse(jsonString);
+          } catch (e) {
+            return { ok: false, error: 'Invalid JSON format' };
+          }
+
+          if (!parsed || typeof parsed !== 'object') {
+            return { ok: false, error: 'JSON must be an object' };
+          }
+
+          if (parsed.version !== 1) {
+            return { ok: false, error: `Unsupported backup version: ${parsed.version}` };
+          }
+
+          if (!Array.isArray(parsed.students)) {
+            return { ok: false, error: 'Missing or invalid students array' };
+          }
+
+          const strategy = options.strategy || 'merge'; // 'merge' | 'replace'
+          const importedStudents = parsed.students.map(normalizeStudent);
+          let imported = 0, skipped = 0, errors = 0;
+          const errorDetails = [];
+
+          if (strategy === 'replace') {
+            students.length = 0;
+            activityLog.length = 0;
+          }
+
+          for (const student of importedStudents) {
+            if (!student.studentNumber || !student.fullName) {
+              errors++;
+              errorDetails.push(`Missing studentNumber or fullName: ${JSON.stringify(student)}`);
+              continue;
+            }
+
+            const existing = students.find(s => s.studentNumber === student.studentNumber);
+            if (existing) {
+              if (strategy === 'merge') {
+                skipped++;
+                continue;
+              }
+            }
+
+            students.push(student);
+            imported++;
+          }
+
+          if (parsed.theme) {
+            dataAPI.setTheme(parsed.theme === 'dark');
+            document.documentElement.classList.toggle('dark-theme', parsed.theme === 'dark');
+            themeToggle.checked = parsed.theme === 'dark';
+          }
+
+          if (Array.isArray(parsed.activityLog)) {
+            activityLog.length = 0;
+            activityLog.push(...parsed.activityLog);
+            if (activityLog.length > MAX_ACTIVITY_LOG) {
+              activityLog.length = MAX_ACTIVITY_LOG;
+            }
+          }
+
+          saveData();
+          saveActivityLog();
+
+          return {
+            ok: true,
+            stats: { imported, skipped, errors, errorDetails }
+          };
+        },
+
+        // Auto-backup
+        setAutoBackup: (enabled) => {
+          setCookie('autoBackup', enabled ? 'true' : 'false', 365);
+        },
+        getAutoBackup: () => {
+          const match = document.cookie.match(/(?:^|; )autoBackup=([^;]+)/);
+          return match ? match[1] === 'true' : false;
         },
 
         // Stats for dashboard
@@ -1858,6 +1974,372 @@
       });
 
       // ============================================================
+      // JSON BACKUP & RESTORE
+      // ============================================================
+
+      // JSON Backup/Restore Modal
+      const jsonModal = document.createElement('div');
+      jsonModal.className = 'modal-overlay';
+      jsonModal.innerHTML = `
+        <div class="modal">
+          <h3 id="json-modal-title">Backup Data (JSON)</h3>
+          <p id="json-modal-desc" style="font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-md);">
+            Download a complete backup of all students, activity log, and settings.
+          </p>
+          <div id="json-backup-content">
+            <button type="button" class="btn-primary" id="btn-download-json" style="width: 100%;">
+              <svg class="icon" aria-hidden="true"><use href="#lucide-download"></use></svg>
+              Download Backup File
+            </button>
+            <p class="file-hint" style="margin-top: var(--space-sm); text-align: center;">
+              File: guild-attendance-backup-YYYY-MM-DD.json
+            </p>
+          </div>
+          <div id="json-restore-content" style="display: none;">
+            <div class="file-drop-zone" id="json-drop-zone">
+              <svg class="icon-large" aria-hidden="true"><use href="#lucide-upload"></use></svg>
+              <p>Drag & drop a backup JSON file here, or click to browse</p>
+              <input type="file" id="json-restore-file" accept=".json,application/json" style="display: none;">
+              <p class="file-hint">Accepts .json backup files</p>
+            </div>
+            <div id="json-file-preview" class="file-preview" style="display: none;">
+              <p>Selected: <strong id="json-file-name"></strong></p>
+              <button type="button" class="btn-link" id="json-file-remove">Remove</button>
+            </div>
+            <label class="toggle-switch" style="margin-top: var(--space-md);">
+              <input type="checkbox" id="json-restore-merge" checked>
+              <span class="toggle-slider" aria-hidden="true"></span>
+              <span class="toggle-label">Merge with existing data (uncheck to replace all)</span>
+            </label>
+            <div id="json-restore-notice" aria-live="polite" style="margin-top: var(--space-sm); min-height: 20px;"></div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn-secondary" id="btn-json-cancel">Cancel</button>
+            <button class="btn-primary" id="btn-json-confirm" style="display: none;">Restore</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(jsonModal);
+
+      let jsonRestoreFile = null;
+      let jsonRestoreMode = 'backup'; // 'backup' or 'restore'
+
+      function showJsonModal(mode) {
+        jsonRestoreMode = mode;
+        const title = jsonModal.querySelector('#json-modal-title');
+        const desc = jsonModal.querySelector('#json-modal-desc');
+        const backupContent = jsonModal.querySelector('#json-backup-content');
+        const restoreContent = jsonModal.querySelector('#json-restore-content');
+        const confirmBtn = jsonModal.querySelector('#btn-json-confirm');
+        const notice = jsonModal.querySelector('#json-restore-notice');
+
+        notice.textContent = '';
+        notice.className = '';
+        jsonModal.querySelector('#json-restore-file').value = '';
+        jsonModal.querySelector('#json-drop-zone').style.display = 'block';
+        jsonModal.querySelector('#json-file-preview').style.display = 'none';
+        jsonRestoreFile = null;
+        jsonModal.querySelector('#json-restore-merge').checked = true;
+
+        if (mode === 'backup') {
+          title.textContent = 'Backup Data (JSON)';
+          desc.textContent = 'Download a complete backup of all students, activity log, and settings.';
+          backupContent.style.display = 'block';
+          restoreContent.style.display = 'none';
+          confirmBtn.style.display = 'none';
+        } else {
+          title.textContent = 'Restore Data (JSON)';
+          desc.textContent = 'Upload a backup JSON file to restore your data.';
+          backupContent.style.display = 'none';
+          restoreContent.style.display = 'block';
+          confirmBtn.style.display = 'inline-flex';
+          confirmBtn.textContent = 'Restore';
+        }
+        jsonModal.classList.add('open');
+      }
+
+      function showJsonRestoreNotice(message, type) {
+        const notice = jsonModal.querySelector('#json-restore-notice');
+        notice.textContent = message;
+        notice.className = type; // 'success' or 'error'
+      }
+
+      // JSON file drag & drop
+      const jsonDropZone = jsonModal.querySelector('#json-drop-zone');
+      const jsonFileInput = jsonModal.querySelector('#json-restore-file');
+      const jsonFilePreview = jsonModal.querySelector('#json-file-preview');
+      const jsonFileNameEl = jsonModal.querySelector('#json-file-name');
+      const jsonFileRemoveBtn = jsonModal.querySelector('#json-file-remove');
+
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        jsonDropZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+      });
+      ['dragenter', 'dragover'].forEach(eventName => {
+        jsonDropZone.addEventListener(eventName, () => jsonDropZone.classList.add('drag-over'), false);
+      });
+      ['dragleave', 'drop'].forEach(eventName => {
+        jsonDropZone.addEventListener(eventName, () => jsonDropZone.classList.remove('drag-over'), false);
+      });
+
+      jsonDropZone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length) handleJsonFile(files[0]);
+      });
+
+      jsonDropZone.addEventListener('click', () => jsonFileInput.click());
+
+      jsonFileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) handleJsonFile(e.target.files[0]);
+      });
+
+      jsonFileRemoveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        jsonRestoreFile = null;
+        jsonFileInput.value = '';
+        jsonFilePreview.style.display = 'none';
+        jsonDropZone.style.display = 'block';
+      });
+
+      function handleJsonFile(file) {
+        if (!file.name.endsWith('.json') && file.type !== 'application/json') {
+          showJsonRestoreNotice('Please select a JSON file', 'error');
+          return;
+        }
+        jsonRestoreFile = file;
+        jsonFileNameEl.textContent = file.name;
+        jsonDropZone.style.display = 'none';
+        jsonFilePreview.style.display = 'flex';
+        showJsonRestoreNotice('', '');
+      }
+
+      // Backup button
+      document.getElementById('btn-backup-json').addEventListener('click', () => {
+        showJsonModal('backup');
+      });
+
+      // Restore button
+      document.getElementById('btn-restore-json').addEventListener('click', () => {
+        showJsonModal('restore');
+      });
+
+      // Download JSON backup
+      document.getElementById('btn-download-json').addEventListener('click', () => {
+        const backupData = {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          students: dataAPI.getAll(),
+          activityLog: activityLog,
+          settings: {
+            darkMode: dataAPI.getTheme(),
+            autoBackup: document.getElementById('auto-backup-toggle')?.checked || false,
+          }
+        };
+        const json = JSON.stringify(backupData, null, 2);
+        const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dateStr = new Date().toISOString().slice(0, 10);
+        a.download = `guild-attendance-backup-${dateStr}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        jsonModal.classList.remove('open');
+      });
+
+      // Confirm restore
+      document.getElementById('btn-json-confirm').addEventListener('click', async () => {
+        if (!jsonRestoreFile) {
+          showJsonRestoreNotice('Please select a backup file', 'error');
+          return;
+        }
+
+        try {
+          const text = await jsonRestoreFile.text();
+          const backup = JSON.parse(text);
+
+          if (!backup || !Array.isArray(backup.students)) {
+            showJsonRestoreNotice('Invalid backup file format', 'error');
+            return;
+          }
+
+          const merge = jsonModal.querySelector('#json-restore-merge').checked;
+          let imported = 0, errors = 0;
+          const errorDetails = [];
+
+          if (!merge) {
+            dataAPI.clearAll();
+          }
+
+          // Restore students
+          for (const student of backup.students) {
+            const normalized = {
+              id: student.id,
+              studentNumber: student.studentNumber,
+              fullName: student.fullName,
+              isPresent: Boolean(student.isPresent),
+              checkInTime: student.checkInTime || null,
+              lastModified: student.lastModified || new Date().toISOString(),
+            };
+            const existing = students.find(s => s.id === normalized.id || s.studentNumber === normalized.studentNumber);
+            if (existing) {
+              if (merge) {
+                // Update existing
+                Object.assign(existing, normalized);
+                imported++;
+              } else {
+                errors++;
+                errorDetails.push(`${normalized.studentNumber}: Duplicate ID/number`);
+              }
+            } else {
+              students.push(normalized);
+              imported++;
+            }
+          }
+
+          // Restore activity log (merge or replace)
+          if (Array.isArray(backup.activityLog)) {
+            if (merge) {
+              // Merge: add new activities, avoid duplicates by timestamp+type+studentNumber
+              const existingKeys = new Set(activityLog.map(a => `${a.timestamp}|${a.type}|${a.studentNumber}`));
+              for (const activity of backup.activityLog) {
+                const key = `${activity.timestamp}|${activity.type}|${activity.studentNumber}`;
+                if (!existingKeys.has(key)) {
+                  activityLog.unshift(activity);
+                  existingKeys.add(key);
+                }
+              }
+              if (activityLog.length > MAX_ACTIVITY_LOG) activityLog.length = MAX_ACTIVITY_LOG;
+            } else {
+              activityLog.length = 0;
+              activityLog.push(...backup.activityLog);
+              if (activityLog.length > MAX_ACTIVITY_LOG) activityLog.length = MAX_ACTIVITY_LOG;
+            }
+          }
+
+          // Restore settings
+          if (backup.settings) {
+            if (backup.settings.darkMode !== undefined) {
+              dataAPI.setTheme(backup.settings.darkMode);
+              document.documentElement.classList.toggle('dark-theme', backup.settings.darkMode);
+              document.getElementById('theme-toggle').checked = backup.settings.darkMode;
+            }
+            if (backup.settings.autoBackup !== undefined) {
+              document.getElementById('auto-backup-toggle').checked = backup.settings.autoBackup;
+            }
+          }
+
+          saveData();
+          saveActivityLog();
+
+          jsonModal.classList.remove('open');
+          renderAttendeeList();
+          renderDashboardStats();
+          renderRecentActivity();
+
+          let message = `Restored: ${imported} students`;
+          if (errors > 0) message += `, Errors: ${errors}`;
+          if (errorDetails.length > 0) message += '\n' + errorDetails.slice(0, 5).join('\n');
+          if (errorDetails.length > 5) message += `\n... and ${errorDetails.length - 5} more errors`;
+          alert(message);
+
+        } catch (e) {
+          console.error('Restore failed:', e);
+          showJsonRestoreNotice('Failed to parse backup file: ' + e.message, 'error');
+        }
+      });
+
+      // Cancel button
+      document.getElementById('btn-json-cancel').addEventListener('click', () => {
+        jsonModal.classList.remove('open');
+      });
+
+      // Auto-backup toggle
+      const autoBackupToggle = document.getElementById('auto-backup-toggle');
+      if (autoBackupToggle) {
+        // Load saved preference
+        const savedAutoBackup = localStorage.getItem('guild_sa_auto_backup');
+        if (savedAutoBackup !== null) {
+          autoBackupToggle.checked = savedAutoBackup === 'true';
+        }
+        autoBackupToggle.addEventListener('change', () => {
+          localStorage.setItem('guild_sa_auto_backup', autoBackupToggle.checked);
+        });
+      }
+
+      // Auto-backup on data changes
+      const originalSaveData = saveData;
+      saveData = function() {
+        originalSaveData();
+        if (autoBackupToggle?.checked) {
+          createAutoBackup();
+        }
+      };
+
+      const originalSaveActivityLog = saveActivityLog;
+      saveActivityLog = function() {
+        originalSaveActivityLog();
+        if (autoBackupToggle?.checked) {
+          createAutoBackup();
+        }
+      };
+
+      function createAutoBackup() {
+        const backupData = {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          students: dataAPI.getAll(),
+          activityLog: activityLog,
+          settings: {
+            darkMode: dataAPI.getTheme(),
+            autoBackup: autoBackupToggle?.checked || false,
+          }
+        };
+        try {
+          localStorage.setItem('guild_sa_auto_backup_data', JSON.stringify(backupData));
+        } catch (e) {
+          console.warn('Auto-backup failed:', e);
+        }
+      }
+
+      // Restore auto-backup on load (check BEFORE loadData)
+      function checkAutoBackupRestore() {
+        const autoBackup = localStorage.getItem('guild_sa_auto_backup_data');
+        if (autoBackup) {
+          try {
+            const backup = JSON.parse(autoBackup);
+            if (backup.students && backup.students.length > 0) {
+              // Check if main data store is empty (fresh install or cleared)
+              const currentData = localStorage.getItem(STORAGE_KEYS.STUDENTS);
+              if (!currentData || JSON.parse(currentData).length === 0) {
+                if (confirm('An auto-backup was found (' + new Date(backup.exportedAt).toLocaleString() + '). Restore it?')) {
+                  for (const student of backup.students) {
+                    const normalized = {
+                      id: student.id,
+                      studentNumber: student.studentNumber,
+                      fullName: student.fullName,
+                      isPresent: Boolean(student.isPresent),
+                      checkInTime: student.checkInTime || null,
+                      lastModified: student.lastModified || new Date().toISOString(),
+                    };
+                    students.push(normalized);
+                  }
+                  if (backup.activityLog) activityLog.push(...backup.activityLog);
+                  saveData();
+                  saveActivityLog();
+                  renderAttendeeList();
+                  renderDashboardStats();
+                  renderRecentActivity();
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('Failed to restore auto-backup:', e);
+          }
+        }
+      }
+
+      // ============================================================
       // VIEW SWITCHING LOGIC
       // ============================================================
 
@@ -1931,6 +2413,7 @@
       // ============================================================
 
       function init() {
+        checkAutoBackupRestore();
         loadData();
         renderDashboardStats();
         renderAttendeeList();
@@ -1943,7 +2426,12 @@
       // ============================================================
 
       window.App = window.App || {};
-      Object.assign(window.App, dataAPI, { showView, renderDashboardStats, renderAttendeeList });
+      Object.assign(window.App, dataAPI, { 
+        showView, 
+        renderDashboardStats, 
+        renderAttendeeList,
+        createAutoBackup
+      });
 
       // Dev helper: test persistence (run in console: App.__devTestPersist())
       window.App.__devTestPersist = () => {
