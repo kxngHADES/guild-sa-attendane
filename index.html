@@ -2535,7 +2535,7 @@
 
         // Attach edit handlers
         list.querySelectorAll('.btn-edit').forEach(btn => {
-          btn.addEventListener('click', () => openEditModal(btn.dataset.id));
+          btn.addEventListener('click', () => openEditStudentModal(btn.dataset.id));
         });
 
         // Attach delete handlers
@@ -3269,6 +3269,91 @@
       // Cancel button
       document.getElementById('btn-json-cancel').addEventListener('click', () => {
         jsonModal.classList.remove('open');
+      });
+
+      // Edit Student Modal
+      const editStudentModal = document.createElement('div');
+      editStudentModal.className = 'modal-overlay';
+      editStudentModal.id = 'edit-student-modal';
+      editStudentModal.innerHTML = `
+        <div class="modal">
+          <h3>Edit Student</h3>
+          <p class="text-secondary" style="margin-bottom: var(--space-md);">Update the student's details below</p>
+          <div class="form-group">
+            <label for="edit-student-number">Student Number <span aria-hidden="true">*</span></label>
+            <input type="text" id="edit-student-number" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="edit-full-name">Full Name <span aria-hidden="true">*</span></label>
+            <input type="text" id="edit-full-name" required autocomplete="name">
+          </div>
+          <div id="edit-student-error" style="font-size: 12px; color: var(--color-danger); min-height: 16px; margin-bottom: var(--space-sm);"></div>
+          <div class="modal-actions">
+            <button class="btn-secondary" id="btn-edit-student-cancel">Cancel</button>
+            <button class="btn-primary" id="btn-edit-student-save">Save Changes</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(editStudentModal);
+
+      function openEditStudentModal(studentId) {
+        const student = dataAPI.getById(studentId);
+        if (!student) return;
+
+        editingStudentId = studentId;
+        document.getElementById('edit-student-number').value = student.studentNumber;
+        document.getElementById('edit-full-name').value = student.fullName;
+        document.getElementById('edit-student-error').textContent = '';
+        editStudentModal.classList.add('open');
+        setTimeout(() => document.getElementById('edit-student-number').focus(), 100);
+      }
+
+      function closeEditStudentModal() {
+        editingStudentId = null;
+        editStudentModal.classList.remove('open');
+      }
+
+      editStudentModal.querySelector('#btn-edit-student-cancel').addEventListener('click', closeEditStudentModal);
+      editStudentModal.querySelector('#btn-edit-student-save').addEventListener('click', () => {
+        if (!editingStudentId) return;
+
+        const studentNumber = document.getElementById('edit-student-number').value.trim();
+        const fullName = document.getElementById('edit-full-name').value.trim();
+        const errorEl = document.getElementById('edit-student-error');
+
+        if (!studentNumber || !fullName) {
+          errorEl.textContent = 'Both fields are required';
+          return;
+        }
+
+        const existing = dataAPI.getByNumber(studentNumber);
+        if (existing && existing.id !== editingStudentId) {
+          errorEl.textContent = 'Student number already exists';
+          return;
+        }
+
+        const result = dataAPI.update(editingStudentId, { studentNumber, fullName });
+        if (result.ok) {
+          closeEditStudentModal();
+          renderAttendeeList();
+          renderDashboardStats();
+          renderRecentActivity();
+        } else {
+          errorEl.textContent = 'Failed to update student';
+        }
+      });
+
+      editStudentModal.querySelector('#edit-student-number').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') editStudentModal.querySelector('#btn-edit-student-save').click();
+        else if (e.key === 'Escape') closeEditStudentModal();
+      });
+      editStudentModal.querySelector('#edit-full-name').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') editStudentModal.querySelector('#btn-edit-student-save').click();
+        else if (e.key === 'Escape') closeEditStudentModal();
+      });
+
+      editStudentModal.addEventListener('click', (e) => {
+        if (e.target === editStudentModal) closeEditStudentModal();
       });
 
       // New Event Modal
